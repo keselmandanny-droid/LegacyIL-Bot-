@@ -17,11 +17,13 @@ import {
 
 function getApplicationStatusPresentation(statusValue) {
     const normalized = typeof statusValue === 'string' ? statusValue.trim().toLowerCase() : 'unknown';
+
     const statusLabel =
-        normalized === 'pending' ? 'In Progress' :
-        normalized === 'approved' ? 'Accepted' :
-        normalized === 'denied' ? 'Denied' :
-        'Unknown';
+        normalized === 'pending' ? 'בתהליך' :
+        normalized === 'approved' ? 'התקבל' :
+        normalized === 'denied' ? 'נדחה' :
+        'לא ידוע';
+
     const statusEmoji =
         normalized === 'pending' ? '🟡' :
         normalized === 'approved' ? '🟢' :
@@ -34,34 +36,37 @@ function getApplicationStatusPresentation(statusValue) {
 export default {
     data: new SlashCommandBuilder()
         .setName("apply")
-        .setDescription("Manage role applications")
+        .setDescription("מערכת ניהול מועמדויות")
+
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("submit")
-                .setDescription("Submit an application for a role")
+                .setDescription("הגשת מועמדות לתפקיד")
                 .addStringOption((option) =>
                     option
                         .setName("application")
-                        .setDescription("The application you want to submit")
+                        .setDescription("המועמדות שברצונך להגיש")
                         .setRequired(true)
                         .setAutocomplete(true),
                 ),
         )
+
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("status")
-                .setDescription("Check the status of your application")
+                .setDescription("בדיקת סטטוס של מועמדות")
                 .addStringOption((option) =>
                     option
                         .setName("id")
-                        .setDescription("Application ID (leave empty to see all)")
+                        .setDescription("מזהה מועמדות (אפשר להשאיר ריק כדי לראות הכל)")
                         .setRequired(false),
                 ),
         )
+
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("list")
-                .setDescription("List available applications to apply for"),
+                .setDescription("הצגת מועמדויות זמינות"),
         ),
 
     category: "Community",
@@ -69,12 +74,12 @@ export default {
     execute: withErrorHandling(async (interaction) => {
         if (!interaction.inGuild()) {
             return InteractionHelper.safeReply(interaction, {
-                embeds: [errorEmbed("This command can only be used in a server.")],
+                embeds: [errorEmbed("ניתן להשתמש בפקודה זו רק בשרת.")],
                 flags: ["Ephemeral"],
             });
         }
 
-        const { options, guild, member } = interaction;
+        const { options, guild } = interaction;
         const subcommand = options.getSubcommand();
 
         if (subcommand !== "submit") {
@@ -88,16 +93,13 @@ export default {
             subcommand
         });
 
-        const settings = await getApplicationSettings(
-            interaction.client,
-            guild.id,
-        );
-        
+        const settings = await getApplicationSettings(interaction.client, guild.id);
+
         if (!settings.enabled) {
             throw createError(
-                'Applications are disabled',
+                'מערכת מועמדויות כבויה',
                 ErrorTypes.CONFIGURATION,
-                'Applications are currently disabled in this server.',
+                'מערכת המועמדויות כבויה בשרת זה כרגע.',
                 { guildId: guild.id }
             );
         }
@@ -111,44 +113,42 @@ export default {
         }
     }, { type: 'command', commandName: 'apply' })
 };
-
 export async function handleApplicationModal(interaction) {
     if (!interaction.isModalSubmit()) return;
-    
+
     const customId = interaction.customId;
     if (!customId.startsWith('app_modal_')) return;
-    
+
     const roleId = customId.split('_')[2];
-    
+
     const applicationRoles = await getApplicationRoles(interaction.client, interaction.guild.id);
     const applicationRole = applicationRoles.find(appRole => appRole.roleId === roleId);
-    
+
     if (!applicationRole) {
         return InteractionHelper.safeEditReply(interaction, {
-            embeds: [errorEmbed('Application configuration not found.')],
+            embeds: [errorEmbed('הגדרות המועמדות לא נמצאו.')],
             flags: ["Ephemeral"]
         });
     }
-    
+
     const role = interaction.guild.roles.cache.get(roleId);
-    
+
     if (!role) {
         return InteractionHelper.safeEditReply(interaction, {
-            embeds: [errorEmbed('Role not found.')],
+            embeds: [errorEmbed('התפקיד לא נמצא.')],
             flags: ["Ephemeral"]
         });
     }
-    
+
     const answers = [];
     const settings = await getApplicationSettings(interaction.client, interaction.guild.id);
-    
-    // Get questions - use per-application questions if they exist, otherwise use global
-    let questions = settings.questions || ["Why do you want this role?", "What is your experience?"];
+
+    let questions = settings.questions || ["למה אתה רוצה את התפקיד הזה?", "מה הניסיון שלך?"];
     const roleSettings = await getApplicationRoleSettings(interaction.client, interaction.guild.id, roleId);
     if (roleSettings.questions && roleSettings.questions.length > 0) {
         questions = roleSettings.questions;
     }
-    
+
     for (let i = 0; i < questions.length; i++) {
         const answer = interaction.fields.getTextInputValue(`q${i}`);
         answers.push({
@@ -156,7 +156,7 @@ export async function handleApplicationModal(interaction) {
             answer: answer
         });
     }
-    
+
     try {
         const application = await ApplicationService.submitApplication(interaction.client, {
             guildId: interaction.guild.id,
@@ -167,43 +167,44 @@ export async function handleApplicationModal(interaction) {
             avatar: interaction.user.displayAvatarURL(),
             answers: answers
         });
-        
+
         const embed = successEmbed(
-            'Application Submitted',
-            `Your application for **${applicationRole.name}** has been submitted successfully!\n\n` +
-            `Application ID: \`${application.id}\`\n` +
-            `You can check the status with \`/apply status id:${application.id}\``
+            'המועמדות נשלחה בהצלחה',
+            `המועמדות שלך עבור **${applicationRole.name}** נשלחה בהצלחה!\n\n` +
+            `מזהה מועמדות: \`${application.id}\`\n` +
+            `ניתן לבדוק סטטוס עם \`/apply status id:${application.id}\``
         );
-        
+
         await InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });
-        
+
         const settings = await getApplicationSettings(interaction.client, interaction.guild.id);
         const roleSettings = await getApplicationRoleSettings(interaction.client, interaction.guild.id, roleId);
-        
-        // Use per-application log channel if exists, otherwise use global
+
         const logChannelId = roleSettings.logChannelId || settings.logChannelId;
-        
+
         if (logChannelId) {
             const logChannel = interaction.guild.channels.cache.get(logChannelId);
+
             if (logChannel) {
                 const logEmbed = createEmbed({
-                    title: '📝 New Application',
-                    description: `**User:** <@${interaction.user.id}> (${interaction.user.tag})\n` +
-                        `**Application:** ${applicationRole.name}\n` +
-                        `**Role:** ${role.name}\n` +
-                        `**Application ID:** \`${application.id}\`\n` +
-                        `**Status:** 🟡 In Progress`
+                    title: '📝 מועמדות חדשה',
+                    description:
+                        `**משתמש:** <@${interaction.user.id}> (${interaction.user.tag})\n` +
+                        `**מועמדות:** ${applicationRole.name}\n` +
+                        `**תפקיד:** ${role.name}\n` +
+                        `**מזהה מועמדות:** \`${application.id}\`\n` +
+                        `**סטטוס:** 🟡 בתהליך`
                 }).setColor(getColor('warning'));
-                
+
                 const logMessage = await logChannel.send({ embeds: [logEmbed] });
-                
+
                 await updateApplication(interaction.client, interaction.guild.id, application.id, {
                     logMessageId: logMessage.id,
                     logChannelId: logChannelId
                 });
             }
         }
-        
+
     } catch (error) {
         logger.error('Error creating application:', {
             error: error.message,
@@ -212,67 +213,67 @@ export async function handleApplicationModal(interaction) {
             roleId,
             stack: error.stack
         });
-        
+
         await handleInteractionError(interaction, error, {
             type: 'modal',
             handler: 'application_submission'
         });
     }
 }
-
 async function handleList(interaction) {
     try {
         const applicationRoles = await getApplicationRoles(interaction.client, interaction.guild.id);
-        
+
         if (applicationRoles.length === 0) {
             return InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed("No applications are currently available.")],
+                embeds: [errorEmbed("אין מועמדויות זמינות כרגע.")],
             });
         }
 
         const embed = createEmbed({
-            title: "Available Applications",
-            description: "Here are the roles you can apply for:"
+            title: "מועמדויות זמינות",
+            description: "הנה התפקידים שניתן להגיש אליהם מועמדות:"
         });
 
         applicationRoles.forEach((appRole, index) => {
             const role = interaction.guild.roles.cache.get(appRole.roleId);
+
             embed.addFields({
                 name: `${index + 1}. ${appRole.name}`,
-                value: `**Role:** ${role ? `<@&${appRole.roleId}>` : 'Role not found'}\n` +
-                       `**Apply with:** \`/apply submit application:"${appRole.name}"\``,
+                value:
+                    `**תפקיד:** ${role ? `<@&${appRole.roleId}>` : 'תפקיד לא נמצא'}\n` +
+                    `**להגשה:** \`/apply submit application:"${appRole.name}"\``,
                 inline: false
             });
         });
 
         embed.setFooter({
-            text: "Use /apply submit application:<name> to apply for any of these roles."
+            text: "השתמש ב־/apply submit כדי להגיש מועמדות."
         });
 
         return InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
+
     } catch (error) {
         logger.error('Error listing applications:', {
             error: error.message,
             guildId: interaction.guild.id,
             stack: error.stack
         });
-        
+
         throw createError(
-            'Failed to load applications',
+            'טעינת מועמדויות נכשלה',
             ErrorTypes.DATABASE,
-            'Failed to load applications. Please try again later.',
+            'לא הצלחנו לטעון את המועמדויות. נסה שוב מאוחר יותר.',
             { guildId: interaction.guild.id }
         );
     }
 }
-
 async function handleSubmit(interaction, settings) {
     const applicationName = interaction.options.getString("application");
-    const member = interaction.member;
 
     const applicationRoles = await getApplicationRoles(interaction.client, interaction.guild.id);
-    
-    const applicationRole = applicationRoles.find(appRole => 
+
+    const applicationRole = applicationRoles.find(appRole =>
         appRole.name.toLowerCase() === applicationName.toLowerCase()
     );
 
@@ -280,8 +281,8 @@ async function handleSubmit(interaction, settings) {
         return InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 errorEmbed(
-                    "Application not found.",
-                    "Use `/apply list` to see available applications."
+                    "המועמדות לא נמצאה.",
+                    "השתמש ב־/apply list כדי לראות מועמדויות זמינות."
                 ),
             ],
             flags: ["Ephemeral"],
@@ -293,13 +294,14 @@ async function handleSubmit(interaction, settings) {
         interaction.guild.id,
         interaction.user.id,
     );
+
     const pendingApp = userApps.find((app) => app.status === "pending");
 
     if (pendingApp) {
         return InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 errorEmbed(
-                    `You already have a pending application. Please wait for it to be reviewed.`,
+                    "כבר יש לך מועמדות בתהליך. המתן לבדיקה."
                 ),
             ],
             flags: ["Ephemeral"],
@@ -307,20 +309,21 @@ async function handleSubmit(interaction, settings) {
     }
 
     const role = interaction.guild.roles.cache.get(applicationRole.roleId);
+
     if (!role) {
         return InteractionHelper.safeEditReply(interaction, {
-            embeds: [errorEmbed('The role for this application no longer exists.')],
+            embeds: [errorEmbed('התפקיד של המועמדות כבר לא קיים.')],
             flags: ["Ephemeral"]
         });
     }
 
     const modal = new ModalBuilder()
         .setCustomId(`app_modal_${applicationRole.roleId}`)
-        .setTitle(`Application for ${applicationRole.name}`);
+        .setTitle(`מועמדות עבור ${applicationRole.name}`);
 
-    // Get questions - use per-application questions if they exist, otherwise use global
-    let questions = settings.questions || ["Why do you want this role?", "What is your experience?"];
+    let questions = settings.questions || ["למה אתה רוצה את התפקיד הזה?", "מה הניסיון שלך?"];
     const roleSettings = await getApplicationRoleSettings(interaction.client, interaction.guild.id, applicationRole.roleId);
+
     if (roleSettings.questions && roleSettings.questions.length > 0) {
         questions = roleSettings.questions;
     }
@@ -343,7 +346,6 @@ async function handleSubmit(interaction, settings) {
 
     await interaction.showModal(modal);
 }
-
 async function handleStatus(interaction) {
     const appId = interaction.options.getString("id");
 
@@ -358,7 +360,7 @@ async function handleStatus(interaction) {
             return InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     errorEmbed(
-                        "Application not found or you do not have permission to view it.",
+                        "המועמדות לא נמצאה או שאין לך הרשאה לצפות בה."
                     ),
                 ],
                 flags: ["Ephemeral"],
@@ -368,66 +370,69 @@ async function handleStatus(interaction) {
         const submittedAt = application?.createdAt ? new Date(application.createdAt) : null;
         const submittedAtDisplay = submittedAt && !Number.isNaN(submittedAt.getTime())
             ? submittedAt.toLocaleString()
-            : 'Unknown date';
+            : 'תאריך לא ידוע';
+
         const statusView = getApplicationStatusPresentation(application.status);
+
         const embed = createEmbed({
-            title: `Application #${application.id} - ${application.roleName || 'Unknown Role'}`,
+            title: `מועמדות #${application.id} - ${application.roleName || 'תפקיד לא ידוע'}`,
             description:
-                `**Application ID:** \`${application.id}\`\n` +
-                `**Status:** ${statusView.statusEmoji} ${statusView.statusLabel}\n` +
-                `**Submitted:** ${submittedAtDisplay}`
+                `**מזהה מועמדות:** \`${application.id}\`\n` +
+                `**סטטוס:** ${statusView.statusEmoji} ${statusView.statusLabel}\n` +
+                `**נשלח בתאריך:** ${submittedAtDisplay}`
         });
-
-        return InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });
-    } else {
-        const applications = await getUserApplications(
-            interaction.client,
-            interaction.guild.id,
-            interaction.user.id,
-        );
-
-        if (applications.length === 0) {
-            return InteractionHelper.safeEditReply(interaction, {
-                embeds: [
-                    errorEmbed("You have not submitted any applications yet."),
-                ],
-                flags: ["Ephemeral"],
-            });
-        }
-
-        const recentApplications = applications
-            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-            .slice(0, 10);
-
-        const embed = createEmbed({
-            title: "Your Applications",
-            description: `Showing ${recentApplications.length} recent application(s).`
-        });
-
-        recentApplications.forEach((application) => {
-            const submittedAt = application?.createdAt ? new Date(application.createdAt) : null;
-            const submittedAtDisplay = submittedAt && !Number.isNaN(submittedAt.getTime())
-                ? submittedAt.toLocaleDateString()
-                : 'Unknown date';
-            const statusView = getApplicationStatusPresentation(application.status);
-
-            embed.addFields({
-                name: `${statusView.statusEmoji} ${application.roleName || 'Unknown Role'} (${statusView.statusLabel})`,
-                value:
-                    `**ID:** \`${application.id}\`\n` +
-                    `**Status:** ${statusView.statusEmoji} ${statusView.statusLabel}\n` +
-                    `**Submitted:** ${submittedAtDisplay}`,
-                inline: true,
-            });
-        });
-
-        if (applications.length > recentApplications.length) {
-            embed.setFooter({ text: `Showing latest ${recentApplications.length} of ${applications.length} applications.` });
-        }
 
         return InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });
     }
+
+    const applications = await getUserApplications(
+        interaction.client,
+        interaction.guild.id,
+        interaction.user.id,
+    );
+
+    if (applications.length === 0) {
+        return InteractionHelper.safeEditReply(interaction, {
+            embeds: [
+                errorEmbed("עוד לא הגשת מועמדויות.")
+            ],
+            flags: ["Ephemeral"],
+        });
+    }
+
+    const recentApplications = applications
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 10);
+
+    const embed = createEmbed({
+        title: "המועמדויות שלך",
+        description: `מציג ${recentApplications.length} מועמדויות אחרונות.`
+    });
+
+    recentApplications.forEach((application) => {
+        const submittedAt = application?.createdAt ? new Date(application.createdAt) : null;
+
+        const submittedAtDisplay = submittedAt && !Number.isNaN(submittedAt.getTime())
+            ? submittedAt.toLocaleDateString()
+            : 'תאריך לא ידוע';
+
+        const statusView = getApplicationStatusPresentation(application.status);
+
+        embed.addFields({
+            name: `${statusView.statusEmoji} ${application.roleName || 'תפקיד לא ידוע'} (${statusView.statusLabel})`,
+            value:
+                `**מזהה:** \`${application.id}\`\n` +
+                `**סטטוס:** ${statusView.statusEmoji} ${statusView.statusLabel}\n` +
+                `**נשלח:** ${submittedAtDisplay}`,
+            inline: true,
+        });
+    });
+
+    if (applications.length > recentApplications.length) {
+        embed.setFooter({
+            text: `מציג ${recentApplications.length} מתוך ${applications.length} מועמדויות.`
+        });
+    }
+
+    return InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });
 }
-
-
-
