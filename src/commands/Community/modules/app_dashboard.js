@@ -35,42 +35,8 @@ import {
     deleteApplication,
 } from '../../../utils/database.js';
 
-/**
- * ====================================================
- * 📋 APPLICATION DASHBOARD MODULE
- * ====================================================
- * 
- * מודול זה אחראי על ניהול לוח הבקרה של המועמדויות.
- * הוא מאפשר למנהלים להגדיר ולעדכן את כל הגדרות המערכת
- * כולל: ערוץ רישום, תפקידים, שאלות ותקופות שמירה.
- * 
- * פונקציות עיקריות:
- * - buildDashboardEmbed: יוצר את ה-Embed של לוח הבקרה
- * - buildSelectMenu: יוצר תפריט בחירה ראשי
- * - setupCollectors: מגדיר אספנים לטיפול באינטראקציות
- * 
- * ====================================================
- */
+// ─── Embed & Menu Builders ────────────────────────────────────────────────────
 
-// ─── בנאים של Embed ו-Menu ────────────────────────────────────────────────────
-
-/**
- * בניית ה-Embed של לוח הבקרה
- * 
- * פונקציה זו יוצרת את ה-Embed הראשי שמציג את כל הגדרות המערכת.
- * היא מציגה:
- * - סטטוס המערכת (מופעלת/בטלה)
- * - ערוץ הרישום הנוכחי
- * - תפקידי מנהלים מוגדרים
- * - השאלות המוגדרות
- * - תפקידי המועמדויות
- * - תקופות השמירה
- * 
- * @param {Object} settings - הגדרות המערכת הגלובליות
- * @param {Array} roles - מערך תפקידי המועמדויות
- * @param {Guild} guild - אובייקט השרת של Discord
- * @returns {EmbedBuilder} - ה-Embed שיוצג
- */
 function buildDashboardEmbed(settings, roles, guild) {
     const logChannel = settings.logChannelId ? `<#${settings.logChannelId}>` : '`לא הוגדר`';
     const managerRoleList =
@@ -108,23 +74,6 @@ function buildDashboardEmbed(settings, roles, guild) {
         .setTimestamp();
 }
 
-/**
- * בניית תפריט הבחירה הראשי
- * 
- * פונקציה זו יוצרת את תפריט ה-StringSelect שמאפשר למנהל
- * לבחור איזו הגדרה הוא רוצה לעדכן.
- * 
- * האפשרויות הזמינות:
- * 1. ערוץ רישום - הגדר ערוץ לרישום מועמדויות
- * 2. תפקידי מנהלים - הוסף/הסר תפקיד למנהלים
- * 3. עריכת שאלות - התאם את השאלות בטופס
- * 4. הוסף תפקיד - הוסף תפקיד חדש למועמדות
- * 5. הסר תפקיד - הסר תפקיד קיים
- * 6. תקופת שמירה - הגדר כמה זמן לשמור נתונים
- * 
- * @param {String} guildId - מזהה השרת
- * @returns {StringSelectMenuBuilder} - תפריט הבחירה
- */
 function buildSelectMenu(guildId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${guildId}`)
@@ -163,20 +112,6 @@ function buildSelectMenu(guildId) {
         );
 }
 
-/**
- * בניית שורת הכפתורים
- * 
- * פונקציה זו יוצרת שורה עם כפתור ON/OFF להפעלה/בטלון
- * של מערכת המועמדויות בכללותה.
- * 
- * - אם המערכת דלוקה - הכפתור יהיה ירוק (Success)
- * - אם המערכת כבויה - הכפתור יהיה אדום (Danger)
- * 
- * @param {Object} settings - הגדרות המערכת
- * @param {String} guildId - מזהה השרת
- * @param {Boolean} disabled - האם לנטרל את הכפתור
- * @returns {ActionRowBuilder} - שורת הכפתורים
- */
 function buildButtonRow(settings, guildId, disabled = false) {
     const systemOn = settings.enabled === true;
     return new ActionRowBuilder().addComponents(
@@ -188,19 +123,8 @@ function buildButtonRow(settings, guildId, disabled = false) {
     );
 }
 
-// ─── פונקציות עזר ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * רענן את לוח הבקרה
- * 
- * פונקציה זו מעדכנת את הודעת לוח הבקרה עם הנתונים החדשים.
- * היא נקראת אחרי כל שינוי בהגדרות כדי להציג את המצב העדכני.
- * 
- * @param {Interaction} rootInteraction - האינטראקציה הראשונית
- * @param {Object} settings - הגדרות המערכת המעודכנות
- * @param {Array} roles - מערך התפקידים המעודכן
- * @param {String} guildId - מזהה השרת
- */
 async function refreshDashboard(rootInteraction, settings, roles, guildId) {
     const selectMenu = buildSelectMenu(guildId);
     await InteractionHelper.safeEditReply(rootInteraction, {
@@ -212,41 +136,24 @@ async function refreshDashboard(rootInteraction, settings, roles, guildId) {
     }).catch(() => {});
 }
 
-// ─── ייצוא ראשי ──────────────────────────────────────────────────────────────────
+// ─── Main Export ──────────────────────────────────────────────────────────────
 
-/**
- * ====================================================
- * 🚀 MAIN EXECUTION FUNCTION
- * ====================================================
- * 
- * פונקציה זו הוא נקודת הכניסה למודול.
- * היא מופעלת כאשר משתמש פותח את לוח הבקרה.
- * 
- * הפונקציה:
- * 1. בודקת אם המערכת מוגדרת כלל
- * 2. טוענת את כל הגדרות המערכת והתפקידים
- * 3. בוחרת איזה לוח בקרה להציג:
- *    - אם אין תפקידים - מציגה הגדרות גלובליות
- *    - אם יש בחירה ספציפית - מציגה את תפקיד זה
- *    - אחרת - מציגה את התפקיד הראשון
- * 4. מגדירה אספנים לטיפול בבחירות המשתמש
- */
 export default {
+    data: new SlashCommandBuilder()
+        .setName("app-dashboard")
+        .setDescription("🎯 פתח את לוח הבקרה של המועמדויות - ניהול הגדרות, תפקידים ושאלות"),
+
     async execute(interaction, config, client, selectedAppName = null) {
         try {
             const guildId = interaction.guild.id;
 
-            // דחה מיד כדי למנוע timeout של Discord
-            // זה חשוב כי Discord נותן רק 3 שניות לתגובה
             await InteractionHelper.safeDefer(interaction, { flags: ['Ephemeral'] });
 
-            // טען הגדרות ותפקידים במקביל כדי להאיץ
             const [settings, roles] = await Promise.all([
                 getApplicationSettings(client, guildId),
                 getApplicationRoles(client, guildId),
             ]);
 
-            // בדוק אם המערכת לא הוגדרה כלל
             const isCompletelyUnconfigured = 
                 !settings.logChannelId && 
                 !settings.enabled && 
@@ -261,13 +168,11 @@ export default {
                 );
             }
 
-            // אם אין תפקידי מועמדויות, הצג הגדרות גלובליות
             if (roles.length === 0) {
                 await showGlobalDashboard(interaction, settings, roles, guildId, client);
                 return;
             }
 
-            // אם בחרת מועמדות ספציפית דרך autocomplete, הצג את לוח הבקרה שלה ישירות
             if (selectedAppName) {
                 const selectedRole = roles.find(r => r.name.toLowerCase() === selectedAppName.toLowerCase());
                 if (selectedRole) {
@@ -276,7 +181,6 @@ export default {
                 }
             }
 
-            // ברירת מחדל: הצג את המועמדות הראשונה אם לא נבחרה
             const defaultRole = roles[0];
             await showApplicationDashboard(interaction, defaultRole, settings, roles, guildId, client);
 
@@ -292,20 +196,8 @@ export default {
     },
 };
 
-// ─── בוחר מועמדויות (למועמדויות מרובות) ────────────────────────────────────
+// ─── Application Selector (for multiple applications) ──────────────────────────
 
-/**
- * הצג בוחר מועמדויות
- * 
- * פונקציה זו מציגה תפריט בחירה כאשר יש מועמדויות רבות.
- * היא מאפשרת למנהל לבחור איזו מועמדות הוא רוצה להגדיר.
- * 
- * @param {Interaction} interaction - אינטראקציית Discord
- * @param {Array} roles - מערך תפקידי המועמדויות
- * @param {Object} settings - הגדרות המערכת
- * @param {String} guildId - מזהה השרת
- * @param {Client} client - לקוח Discord
- */
 async function showApplicationSelector(interaction, roles, settings, guildId, client) {
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`app_select_${guildId}`)
@@ -360,22 +252,8 @@ async function showApplicationSelector(interaction, roles, settings, guildId, cl
     });
 }
 
-// ─── לוח בקרה גלובלי ──────────────────────────────────────────────────────────
+// ─── Global Dashboard ──────────────────────────────────────────────────────────
 
-/**
- * הצג לוח בקרה גלובלי
- * 
- * פונקציה זו מציגה את לוח הבקרה עם הגדרות גלובליות.
- * זה מופיע כאשר:
- * - אין עדיין תפקידי מועמדויות מוגדרים
- * - המנהל רוצה לערוך הגדרות גלובליות
- * 
- * @param {Interaction} interaction - אינטראקציית Discord
- * @param {Object} settings - הגדרות המערכת
- * @param {Array} roles - מערך תפקידי המועמדויות
- * @param {String} guildId - מזהה השרת
- * @param {Client} client - לקוח Discord
- */
 async function showGlobalDashboard(interaction, settings, roles, guildId, client) {
     const selectMenu = buildSelectMenu(guildId);
 
@@ -390,36 +268,16 @@ async function showGlobalDashboard(interaction, settings, roles, guildId, client
     setupCollectors(interaction, settings, roles, guildId, client, null);
 }
 
-// ─── לוח בקרה לכל מועמדות ────────────────────────────────────────────────────
+// ─── Application-Specific Dashboard ────────────────────────────────────────────
 
-/**
- * הצג לוח בקרה ספציפי למועמדות
- * 
- * פונקציה זו מציגה לוח בקרה מפורט לתפקיד מסוים.
- * היא מציגה:
- * - שם התפקיד ורוגז הנוכחי
- * - הגדרות ספציפיות לתפקיד זה
- * - כפתורי שליטה (בטל/הפעל/מחק)
- * - תפריט להגדרה של אפשרויות
- * 
- * @param {Interaction} rootInteraction - אינטראקציית Discord
- * @param {Object} selectedRole - התפקיד הנבחר
- * @param {Object} settings - הגדרות המערכת
- * @param {Array} roles - מערך תפקידי המועמדויות
- * @param {String} guildId - מזהה השרת
- * @param {Client} client - לקוח Discord
- */
 async function showApplicationDashboard(rootInteraction, selectedRole, settings, roles, guildId, client) {
-    // קבל את אובייקט התפקיד מ-Discord
     const roleObj = rootInteraction.guild.roles.cache.get(selectedRole.roleId);
     
-    // קבל הגדרות ספציפיות למועמדות זו
     const appSettings = await getApplicationRoleSettings(client, guildId, selectedRole.roleId);
     const questions = appSettings.questions || settings.questions || [];
     const appLogChannelId = appSettings.logChannelId || settings.logChannelId;
     const isEnabled = selectedRole.enabled !== false;
 
-    // בנה טקסטים להצגה
     const logChannelDisplay = appLogChannelId 
         ? `<#${appLogChannelId}>` 
         : '`ירושה מערוץ הרישום הגלובלי`';
@@ -432,7 +290,6 @@ async function showApplicationDashboard(rootInteraction, selectedRole, settings,
         ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
         : '`אין מוגדר`';
 
-    // בנה את ה-Embed
     const embed = new EmbedBuilder()
         .setTitle('🎭 לוח בקרה למועמדות')
         .setDescription(`הגדרה עבור **${selectedRole.name}**`)
@@ -473,7 +330,6 @@ async function showApplicationDashboard(rootInteraction, selectedRole, settings,
         .setFooter({ text: 'לוח הבקרה ייסגר לאחר 10 דקות של אי-פעילות' })
         .setTimestamp();
 
-    // בנה את הרכיבים
     const configMenu = buildApplicationSelectMenu(guildId, selectedRole.roleId);
 
     const controlButtons = new ActionRowBuilder().addComponents(
@@ -490,40 +346,19 @@ async function showApplicationDashboard(rootInteraction, selectedRole, settings,
 
     const menuRow = new ActionRowBuilder().addComponents(configMenu);
 
-    // שלח את לוח הבקרה
     await InteractionHelper.safeEditReply(rootInteraction, {
         embeds: [embed],
         components: [menuRow, controlButtons],
     });
 
-    // הגדר אספנים לטיפול בבחירות
     setupCollectors(rootInteraction, settings, roles, guildId, client, selectedRole.roleId);
 }
 
-// ─── הגדרת אספנים ────────────────────────────────────────────────────────────
+// ─── Collector Setup ──────────────────────────────────────────────────────────
 
-/**
- * ====================================================
- * 🎯 SETUP COLLECTORS FUNCTION
- * ====================================================
- * 
- * פונקציה זו מגדירה אספנים (Collectors) לטיפול בכל האינטראקציות
- * של המשתמש עם לוח הבקרה.
- * 
- * האספנים מטפלים ב:
- * 1. StringSelect - בחירות מתפריט
- * 2. Button - לחיצות על כפתורים
- * 3. Modal - הגשות טפסים
- * 
- * כל אספן מאזין למשך 10 דקות ואז סוגר את לוח הבקרה.
- */
 function setupCollectors(interaction, settings, roles, guildId, client, selectedRoleId) {
     const customIdPrefix = selectedRoleId ? `app_cfg_${selectedRoleId}` : `app_cfg_${guildId}`;
     
-    /**
-     * אספן ראשי - מטפל בבחירות מתפריט StringSelect
-     * זה האספן הראשי שמטפל בכל בחירות המשתמש מהתפריט
-     */
     const collector = interaction.channel.createMessageComponentCollector({
         componentType: ComponentType.StringSelect,
         filter: i =>
@@ -531,18 +366,15 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             (selectedRoleId 
                 ? i.customId === customIdPrefix
                 : (i.customId === `app_cfg_${guildId}` || i.customId === `app_select_${guildId}`)),
-        time: 600_000, // 10 דקות
+        time: 600_000,
     });
 
     collector.on('collect', async selectInteraction => {
         const selectedOption = selectInteraction.values[0];
         try {
-            // בדוק שזו אכן StringSelect (לפעמים Discord שולח garbage)
             if (!selectInteraction.isStringSelectMenu()) {
                 return;
             }
-
-            // נתב לפונקציה המתאימה בהתאם לבחירה
             switch (selectedOption) {
                 case 'log_channel':
                     await handleLogChannel(selectInteraction, interaction, settings, roles, guildId, client, selectedRoleId);
@@ -588,7 +420,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         }
     });
 
-    // כאשר האספן מסתיים (לאחר 10 דקות)
     collector.on('end', async (collected, reason) => {
         if (reason === 'time') {
             const timeoutEmbed = new EmbedBuilder()
@@ -603,12 +434,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         }
     });
 
-    // אם זה לוח בקרה גלובלי, הוסף אספן לכפתור ה-Toggle
     if (!selectedRoleId) {
-        /**
-         * אספן כפתור טוגל גלובלי
-         * מטפל בלחיצה על כפתור הפעלה/בטלון של המערכת בכללותה
-         */
         const globalToggleCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
             filter: i =>
@@ -625,15 +451,12 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const wasEnabled = settings.enabled === true;
                 settings.enabled = !wasEnabled;
 
-                // שמור את ההגדרות החדשות
                 await saveApplicationSettings(interaction.client, guildId, settings);
 
-                // רענן את לוח הבקרה
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 const updatedRoles = await getApplicationRoles(interaction.client, guildId);
                 await showGlobalDashboard(interaction, updatedSettings, updatedRoles, guildId, interaction.client);
 
-                // שלח הודעת הצלחה
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
                         wasEnabled ? '🔴 מועמדויות בטלו' : '🟢 מועמדויות הופעלו',
@@ -670,12 +493,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         });
     }
 
-    // אם זה לוח בקרה ספציפי, הוסף אספנים לכפתורי מחק ו-toggle
     if (selectedRoleId) {
-        /**
-         * אספן כפתור מחיקה
-         * מטפל בלחיצה על כפתור מחיקת המועמדות
-         */
         const btnCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
             filter: i =>
@@ -685,7 +503,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         });
 
         btnCollector.on('collect', async btnInteraction => {
-            // הצג דיאלוג אישור
             const appRoleForDelete = roles.find(r => r.roleId === selectedRoleId);
             const appNameForDelete = appRoleForDelete?.name ?? 'מועמדות זו';
 
@@ -720,7 +537,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             }
 
             try {
-                // המתן לאישור
                 const confirmSubmit = await btnInteraction.awaitModalSubmit({
                     time: 60_000,
                     filter: i =>
@@ -735,7 +551,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                     return;
                 }
 
-                // בדוק אם המשתמש אישר
                 const confirmed = confirmSubmit.fields.getCheckbox('confirm_delete');
                 if (!confirmed) {
                     await confirmSubmit.reply({
@@ -745,7 +560,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                     return;
                 }
 
-                // בצע את המחיקה
                 await handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client);
                 collector.stop();
                 btnCollector.stop();
@@ -773,10 +587,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             }
         });
 
-        /**
-         * אספן כפתור טוגל ספציפי
-         * מטפל בלחיצה על כפתור הפעלה/בטלון של מועמדות ספציפית
-         */
         const toggleCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
             filter: i =>
@@ -790,7 +600,6 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             if (!deferred) return;
             
             try {
-                // מצא את התפקיד במערך
                 const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
                 if (roleIndex === -1) {
                     await toggleInteraction.followUp({
@@ -800,19 +609,15 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                     return;
                 }
 
-                // החלף את הסטטוס
                 const wasEnabled = roles[roleIndex].enabled !== false;
                 roles[roleIndex].enabled = !wasEnabled;
 
-                // שמור את ההגדרות החדשות
                 await saveApplicationRoles(interaction.client, guildId, roles);
 
-                // רענן את לוח הבקרה
                 const updatedRole = roles[roleIndex];
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 await showApplicationDashboard(interaction, updatedRole, updatedSettings, roles, guildId, interaction.client);
 
-                // שלח הודעת הצלחה
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
                         wasEnabled ? '🔴 מועמדות בטלה' : '🟢 מועמדות הופעלה',
@@ -850,14 +655,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
     }
 }
 
-// ─── בניית תפריטי בחירה ───────────────────────────────────────────────────────
+// ─── Build Select Menus ────────────────────────────────────────────────────────
 
-/**
- * בניית תפריט בחירה למועמדות ספציפית
- * 
- * תפריט זה מציג אפשרויות להגדרה של מועמדות ספציפית,
- * בניגוד לתפריט הגלובלי שמציג אפשרויות להוספה/הסרה של תפקידים.
- */
 function buildApplicationSelectMenu(guildId, roleId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${roleId}`)
@@ -886,17 +685,8 @@ function buildApplicationSelectMenu(guildId, roleId) {
         );
 }
 
-// ─── ערוץ רישום ──────────────────────────────────────────────────────────────
+// ─── Log Channel ──────────────────────────────────────────────────────────────
 
-/**
- * טיפול בבחירת ערוץ רישום
- * 
- * פונקציה זו מאפשרת למנהל לבחור איזה ערוץ יישמש
- * לרישום מועמדויות חדשות.
- * 
- * ניתן להגדיר ערוץ ספציפי לכל מועמדות, או ערוץ גלובלי
- * שישמש כברירת מחדל לכל המועמדויות.
- */
 async function handleLogChannel(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
     const deferred = await safeDeferInteraction(selectInteraction);
     if (!deferred) return;
@@ -975,17 +765,9 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
     });
 }
 
-// ─── תפקידי מנהלים ───────────────────────────────────────────────────────────
+// ─── Manager Role ─────────────────────────────────────────────────────────────
 
-/**
- * טיפול בבחירת תפקידי מנהלים
- * 
- * פונקציה זו מאפשרת למנהל להוסיף או להסיר תפקידים
- * שיוכלו לנהל את מערכת המועמדויות.
- * 
- * זהו הגדרה גלובלית שחלה על כל המועמדויות.
- */
-async function handleManagerRole(selectInteraction, rootInteraction, settings, roles, guildId, client) {
+async function handleManagerRole(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
     const deferred = await safeDeferInteraction(selectInteraction);
     if (!deferred) return;
 
@@ -1059,20 +841,8 @@ async function handleManagerRole(selectInteraction, rootInteraction, settings, r
     });
 }
 
-// ─── עריכת שאלות ──────────────────────────────────────────────────────────────
+// ─── Edit Questions ───────────────────────────────────────────────────────────
 
-/**
- * טיפול בעריכת שאלות
- * 
- * פונקציה זו מאפשרת למנהל לערוך את השאלות שיופיעו
- * בטופס המועמדות.
- * 
- * ניתן להגדיר עד 5 שאלות:
- * - שאלה 1: חובה
- * - שאלות 2-5: אופציונליות
- * 
- * ניתן להגדיר שאלות גלובליות או שאלות ספציפיות לכל מועמדות.
- */
 async function handleQuestions(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
     let currentQuestions = settings.questions ?? [];
     
@@ -1179,19 +949,8 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
     await refreshDashboard(rootInteraction, settings, roles, guildId);
 }
 
-// ─── הוסף תפקיד מועמדויות ────────────────────────────────────────────────────
+// ─── Add Application Role ─────────────────────────────────────────────────────
 
-/**
- * טיפול בהוספת תפקיד מועמדויות
- * 
- * פונקציה זו מאפשרת למנהל להוסיף תפקיד חדש
- * שחברים יכולים להגיש בקשה עבורו.
- * 
- * תהליך ההוספה:
- * 1. בחר תפקיד Discord
- * 2. הגדר שם תצוגה (אופציונלי)
- * 3. התפקיד מתווסף למערכת
- */
 async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles, guildId, client) {
     const deferred = await safeDeferInteraction(selectInteraction);
     if (!deferred) return;
@@ -1225,7 +984,6 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
     roleCollector.on('collect', async roleInteraction => {
         const role = roleInteraction.roles.first();
 
-        // בדוק אם התפקיד כבר קיים
         if (roles.some(r => r.roleId === role.id)) {
             const deferred = await safeDeferInteraction(roleInteraction);
             if (!deferred) return;
@@ -1237,7 +995,6 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
             return;
         }
 
-        // הצג דיאלוג להגדרת שם התצוגה
         const nameModal = new ModalBuilder()
             .setCustomId('app_cfg_role_add_name')
             .setTitle('שם תפקיד המועמדות')
@@ -1267,7 +1024,6 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
 
         const customName = nameSubmit.fields.getTextInputValue('role_name').trim() || role.name;
 
-        // הוסף את התפקיד
         roles.push({ roleId: role.id, name: customName });
         await saveApplicationRoles(client, guildId, roles);
 
@@ -1294,17 +1050,8 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
     });
 }
 
-// ─── הסר תפקיד מועמדויות ──────────────────────────────────────────────────────
+// ─── Remove Application Role ──────────────────────────────────────────────────
 
-/**
- * טיפול בהסרת תפקיד מועמדויות
- * 
- * פונקציה זו מאפשרת למנהל להסיר תפקיד קיים מהמערכת.
- * 
- * הסרה פירושה:
- * - התפקיד לא יהיה זמין עוד לבקשות
- * - חברים לא יוכלו להגיש בקשות עבורו
- */
 async function handleRoleRemove(selectInteraction, rootInteraction, settings, roles, guildId, client) {
     const deferred = await safeDeferInteraction(selectInteraction);
     if (!deferred) return;
@@ -1379,20 +1126,9 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
     });
 }
 
-// ─── תקופת שמירה ──────────────────────────────────────────────────────────────
+// ─── Retention Period ─────────────────────────────────────────────────────────
 
-/**
- * טיפול בהגדרת תקופת השמירה
- * 
- * פונקציה זו מאפשרת למנהל להגדיר כמה זמן המערכת
- * תשמור נתונים על מועמדויות:
- * 
- * - בהמתנה: מועמדויות שלא טופלו עדיין
- * - בדוקה: מועמדויות שאושרו או נדחו
- * 
- * לאחר תקופת השמירה, הנתונים יוסרו אוטומטית.
- */
-async function handleRetention(selectInteraction, rootInteraction, settings, roles, guildId, client) {
+async function handleRetention(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
     const modal = new ModalBuilder()
         .setCustomId('app_cfg_retention')
         .setTitle('תקופות שמירה של מועמדויות');
@@ -1447,7 +1183,6 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
     const pendingDays = parseInt(submitted.fields.getTextInputValue('pending_days').trim(), 10);
     const reviewedDays = parseInt(submitted.fields.getTextInputValue('reviewed_days').trim(), 10);
 
-    // בדוק ערכים חוקיים
     if (isNaN(pendingDays) || pendingDays < 1 || pendingDays > 3650) {
         await submitted.reply({
             embeds: [errorEmbed('ערך לא חוקי', 'שמירה בהמתנה חייבת להיות מספר שלם בין **1** ל-**3650** ימים.')],
@@ -1464,7 +1199,6 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
         return;
     }
 
-    // עדכן את ההגדרות
     settings.pendingApplicationRetentionDays = pendingDays;
     settings.reviewedApplicationRetentionDays = reviewedDays;
     await saveApplicationSettings(client, guildId, settings);
@@ -1482,20 +1216,10 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
     await refreshDashboard(rootInteraction, settings, roles, guildId);
 }
 
-// ─── מחק מועמדות ──────────────────────────────────────────────────────────────
+// ─── Delete Application ───────────────────────────────────────────────────────
 
-/**
- * טיפול במחיקת מועמדות
- * 
- * פונקציה זו מוחקת מועמדות ומחקה:
- * - את ההגדרות של המועמדות
- * - את כל המועמדויות השמורות לתפקיד זה
- * 
- * זהו פעולה קבועה ולא ניתן לביטול!
- */
 async function handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client) {
     try {
-        // מצא את התפקיד במערך
         const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
         if (roleIndex === -1) {
             await confirmSubmit.reply({
@@ -1507,23 +1231,18 @@ async function handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, r
 
         const deletedRole = roles[roleIndex];
 
-        // הסר מהמערך
         roles.splice(roleIndex, 1);
         await saveApplicationRoles(client, guildId, roles);
 
-        // מחק את הגדרות התפקיד
         await deleteApplicationRoleSettings(client, guildId, selectedRoleId);
 
-        // קבל את כל המועמדויות לשרת זה
         const allApplications = await getApplications(client, guildId);
         const applicationsToDelete = allApplications.filter(app => app.roleId === selectedRoleId);
 
-        // מחק כל מועמדות לתפקיד זה
         for (const app of applicationsToDelete) {
             await deleteApplication(client, guildId, app.id, app.userId);
         }
 
-        // שלח הודעת הצלחה
         await confirmSubmit.reply({
             embeds: [
                 successEmbed(
