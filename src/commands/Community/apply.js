@@ -36,16 +36,16 @@ function getApplicationStatusPresentation(statusValue) {
 export default {
     data: new SlashCommandBuilder()
         .setName("apply")
-        .setDescription("מערכת ניהול מועמדויות")
+        .setDescription("🎯 הגשת מועמדויות, בדיקת סטטוס וצפייה בתפקידים זמינים")
 
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("submit")
-                .setDescription("הגשת מועמדות לתפקיד")
+                .setDescription("📝 הגש מועמדות לתפקיד בשרת")
                 .addStringOption((option) =>
                     option
                         .setName("application")
-                        .setDescription("המועמדות שברצונך להגיש")
+                        .setDescription("בחר את המועמדות שברצונך להגיש")
                         .setRequired(true)
                         .setAutocomplete(true),
                 ),
@@ -54,11 +54,11 @@ export default {
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("status")
-                .setDescription("בדיקת סטטוס של מועמדות")
+                .setDescription("📊 בדוק את סטטוס המועמדויות שלך")
                 .addStringOption((option) =>
                     option
                         .setName("id")
-                        .setDescription("מזהה מועמדות (אפשר להשאיר ריק כדי לראות הכל)")
+                        .setDescription("מזהה מועמדות (השאר ריק כדי לראות את כל המועמדויות)")
                         .setRequired(false),
                 ),
         )
@@ -66,7 +66,7 @@ export default {
         .addSubcommand((subcommand) =>
             subcommand
                 .setName("list")
-                .setDescription("הצגת מועמדויות זמינות"),
+                .setDescription("📋 הצג את כל המועמדויות הזמינות בשרת"),
         ),
 
     category: "Community",
