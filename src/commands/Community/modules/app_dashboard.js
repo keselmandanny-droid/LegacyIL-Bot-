@@ -38,75 +38,75 @@ import {
 // ─── Embed & Menu Builders ────────────────────────────────────────────────────
 
 function buildDashboardEmbed(settings, roles, guild) {
-    const logChannel = settings.logChannelId ? `<#${settings.logChannelId}>` : '`לא הוגדר`';
+    const logChannel = settings.logChannelId ? `<#${settings.logChannelId}>` : '`Not set`';
     const managerRoleList =
         settings.managerRoles?.length > 0
             ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
-            : '`אין מוגדר`';
+            : '`None configured`';
     const roleList =
         roles.length > 0
             ? roles.map(r => `<@&${r.roleId}> — ${r.name}`).join('\n')
-            : '`לא הוגדרו תפקידים למועמדויות`';
+            : '`No application roles configured`';
     const questionCount = settings.questions?.length ?? 0;
     const firstQ =
         settings.questions?.[0]
             ? `\`${settings.questions[0].length > 55 ? settings.questions[0].substring(0, 55) + '…' : settings.questions[0]}\``
-            : '`לא הוגדר`';
+            : '`Not set`';
 
     return new EmbedBuilder()
-        .setTitle('📋 לוח בקרה למועמדויות')
-        .setDescription(`ניהול הגדרות המועמדויות עבור **${guild.name}**.\nבחר אפשרות להלן כדי לשנות הגדרה.`)
+        .setTitle('📋 Applications Dashboard')
+        .setDescription(`Manage application settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
         .setColor(getColor('info'))
         .addFields(
-            { name: '⚙️ סטטוס המערכת', value: settings.enabled ? '✅ מופעלת' : '❌ מבוטלת', inline: true },
-            { name: '📢 ערוץ רישום', value: logChannel, inline: true },
+            { name: '⚙️ Application Status', value: settings.enabled ? '✅ Enabled' : '❌ Disabled', inline: true },
+            { name: '📢 Log Channel', value: logChannel, inline: true },
             { name: '\u200B', value: '\u200B', inline: true },
-            { name: '🛡️ תפקידי מנהלים', value: managerRoleList, inline: false },
-            { name: '📝 שאלות', value: `${questionCount} הוגדרו — ראשונה: ${firstQ}`, inline: false },
-            { name: '🎭 תפקידי מועמדויות', value: roleList, inline: false },
+            { name: '🛡️ Manager Roles', value: managerRoleList, inline: false },
+            { name: '📝 Questions', value: `${questionCount} configured — first: ${firstQ}`, inline: false },
+            { name: '🎭 Application Roles', value: roleList, inline: false },
             {
-                name: '🗑️ שמירת נתונים',
-                value: `בהמתנה: **${settings.pendingApplicationRetentionDays ?? 30}י** · בדוקה: **${settings.reviewedApplicationRetentionDays ?? 14}י**`,
+                name: '🗑️ Retention',
+                value: `Pending: **${settings.pendingApplicationRetentionDays ?? 30}d** · Reviewed: **${settings.reviewedApplicationRetentionDays ?? 14}d**`,
                 inline: false,
             },
         )
-        .setFooter({ text: 'לוח הבקרה ייסגר לאחר 15 דקות של אי-פעילות' })
+        .setFooter({ text: 'Dashboard closes after 15 minutes of inactivity' })
         .setTimestamp();
 }
 
 function buildSelectMenu(guildId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${guildId}`)
-        .setPlaceholder('בחר הגדרה להגדרה...')
+        .setPlaceholder('Select a setting to configure...')
         .addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel('ערוץ רישום')
-                .setDescription('הגדר את הערוץ שבו יירשמו המועמדויות החדשות')
+                .setLabel('Log Channel')
+                .setDescription('Set the channel where new applications are logged')
                 .setValue('log_channel')
                 .setEmoji('📢'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('תפקידי מנהלים')
-                .setDescription('הוסף או הסר תפקיד שיכול לנהל מועמדויות')
+                .setLabel('Manager Roles')
+                .setDescription('Add or remove a role that can manage applications')
                 .setValue('manager_role')
                 .setEmoji('🛡️'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('עריכת שאלות')
-                .setDescription('התאם אישית את השאלות המוצגות בטופס המועמדות')
+                .setLabel('Edit Questions')
+                .setDescription('Customise the questions shown on the application form')
                 .setValue('questions')
                 .setEmoji('📝'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('הוסף תפקיד מועמדויות')
-                .setDescription('הוסף תפקיד שחברים יכולים להגיש בקשה עבורו')
+                .setLabel('Add Application Role')
+                .setDescription('Add a role that members can apply for')
                 .setValue('role_add')
                 .setEmoji('➕'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('הסר תפקיד מועמדויות')
-                .setDescription('הסר תפקיד מרשימת המועמדויות')
+                .setLabel('Remove Application Role')
+                .setDescription('Remove a role from the applications list')
                 .setValue('role_remove')
                 .setEmoji('➖'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('תקופת שמירה')
-                .setDescription('הגדר כמה זמן מועמדויות בהמתנה ובדוקות יישמרו')
+                .setLabel('Retention Period')
+                .setDescription('Set how long pending and reviewed applications are kept')
                 .setValue('retention')
                 .setEmoji('🗑️'),
         );
@@ -117,7 +117,7 @@ function buildButtonRow(settings, guildId, disabled = false) {
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId(`app_cfg_toggle_${guildId}`)
-            .setLabel('מועמדויות')
+            .setLabel('Applications')
             .setStyle(systemOn ? ButtonStyle.Success : ButtonStyle.Danger)
             .setDisabled(disabled),
     );
@@ -139,14 +139,11 @@ async function refreshDashboard(rootInteraction, settings, roles, guildId) {
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 export default {
-    data: new SlashCommandBuilder()
-        .setName("app-dashboard")
-        .setDescription("🎯 פתח את לוח הבקרה של המועמדויות - ניהול הגדרות, תפקידים ושאלות"),
-
     async execute(interaction, config, client, selectedAppName = null) {
         try {
             const guildId = interaction.guild.id;
 
+            // Defer immediately to prevent Discord interaction timeout
             await InteractionHelper.safeDefer(interaction, { flags: ['Ephemeral'] });
 
             const [settings, roles] = await Promise.all([
@@ -154,6 +151,7 @@ export default {
                 getApplicationRoles(client, guildId),
             ]);
 
+            // Check if application system is completely unconfigured
             const isCompletelyUnconfigured = 
                 !settings.logChannelId && 
                 !settings.enabled && 
@@ -162,35 +160,39 @@ export default {
 
             if (isCompletelyUnconfigured) {
                 throw new TitanBotError(
-                    'מערכת המועמדויות לא הוגדרה',
+                    'Applications system not set up',
                     ErrorTypes.CONFIGURATION,
-                    'מערכת המועמדויות טרם הוגדרה. בחר `/app-admin setup` כדי ליצור את המועמדות הראשונה שלך.',
+                    'The applications system has not been configured yet. Please run `/app-admin setup` to create your first application.',
                 );
             }
 
+            // If no application roles exist, show global settings to add one
             if (roles.length === 0) {
                 await showGlobalDashboard(interaction, settings, roles, guildId, client);
                 return;
             }
 
+            // If a specific app was selected via autocomplete, show its dashboard directly
             if (selectedAppName) {
                 const selectedRole = roles.find(r => r.name.toLowerCase() === selectedAppName.toLowerCase());
                 if (selectedRole) {
                     await showApplicationDashboard(interaction, selectedRole, settings, roles, guildId, client);
                     return;
                 }
+                // If name doesn't match, fall through
             }
 
+            // Default: Show first application if no selection made
             const defaultRole = roles[0];
             await showApplicationDashboard(interaction, defaultRole, settings, roles, guildId, client);
 
         } catch (error) {
             if (error instanceof TitanBotError) throw error;
-            logger.error('שגיאה בלוח בקרה של מועמדויות:', error);
+            logger.error('Unexpected error in app_dashboard:', error);
             throw new TitanBotError(
-                `לוח בקרה למועמדויות נכשל: ${error.message}`,
+                `Applications dashboard failed: ${error.message}`,
                 ErrorTypes.UNKNOWN,
-                'נכשל בפתיחת לוח הבקרה למועמדויות.',
+                'Failed to open the applications dashboard.',
             );
         }
     },
@@ -201,20 +203,20 @@ export default {
 async function showApplicationSelector(interaction, roles, settings, guildId, client) {
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`app_select_${guildId}`)
-        .setPlaceholder('בחר מועמדות להגדרה...')
+        .setPlaceholder('Select an application to configure...')
         .addOptions(
             roles.map(role =>
                 new StringSelectMenuOptionBuilder()
                     .setLabel(role.name)
-                    .setDescription(`הגדר את המועמדות ל-${role.name}`)
+                    .setDescription(`Configure the ${role.name} application`)
                     .setValue(role.roleId)
                     .setEmoji('📋'),
             ),
         );
 
     const embed = new EmbedBuilder()
-        .setTitle('🎯 בחר מועמדות')
-        .setDescription('בחר איזו מועמדות תרצה להגדיר.')
+        .setTitle('🎯 Select Application')
+        .setDescription('Choose which application role you want to configure.')
         .setColor(getColor('info'));
 
     await InteractionHelper.safeEditReply(interaction, {
@@ -245,7 +247,7 @@ async function showApplicationSelector(interaction, roles, settings, guildId, cl
     collector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('פג תוקף', 'לא נבחרה אפשרות. לוח הבקרה סגור.')],
+                embeds: [errorEmbed('Timed Out', 'No selection was made. The dashboard has closed.')],
                 components: [],
             }).catch(() => {});
         }
@@ -273,73 +275,77 @@ async function showGlobalDashboard(interaction, settings, roles, guildId, client
 async function showApplicationDashboard(rootInteraction, selectedRole, settings, roles, guildId, client) {
     const roleObj = rootInteraction.guild.roles.cache.get(selectedRole.roleId);
     
+    // Get application-specific settings
     const appSettings = await getApplicationRoleSettings(client, guildId, selectedRole.roleId);
     const questions = appSettings.questions || settings.questions || [];
     const appLogChannelId = appSettings.logChannelId || settings.logChannelId;
-    const isEnabled = selectedRole.enabled !== false;
+    const isEnabled = selectedRole.enabled !== false; // Default to true if not specified
 
+    // Build comprehensive embed
     const logChannelDisplay = appLogChannelId 
         ? `<#${appLogChannelId}>` 
-        : '`ירושה מערוץ הרישום הגלובלי`';
+        : '`Inherits global log channel`';
     
     const questionsDisplay = questions.length > 0
         ? questions.map((q, i) => `${i + 1}. \`${q.length > 60 ? q.substring(0, 60) + '…' : q}\``).join('\n')
-        : '`ירושה משאלות גלובליות`';
+        : '`Inherits global questions`';
     
     const managerRolesDisplay = settings.managerRoles && settings.managerRoles.length > 0
         ? settings.managerRoles.map(id => `<@&${id}>`).join(', ')
-        : '`אין מוגדר`';
+        : '`None configured`';
 
     const embed = new EmbedBuilder()
-        .setTitle('🎭 לוח בקרה למועמדות')
-        .setDescription(`הגדרה עבור **${selectedRole.name}**`)
+        .setTitle('🎭 Application Dashboard')
+        .setDescription(`Configuration for **${selectedRole.name}**`)
         .setColor(isEnabled ? getColor('success') : getColor('error'))
         .addFields(
             { 
-                name: '🎭 תפקיד', 
+                name: '🎭 Role', 
                 value: roleObj ? roleObj.toString() : `<@&${selectedRole.roleId}>`, 
                 inline: true 
             },
             { 
-                name: '⚙️ סטטוס המועמדות', 
-                value: isEnabled ? '✅ **מופעלת**' : '❌ **מבוטלת**', 
+                name: '⚙️ Application Status', 
+                value: isEnabled ? '✅ **Enabled**' : '❌ **Disabled**', 
                 inline: true 
             },
             { name: '\u200B', value: '\u200B', inline: true },
             { 
-                name: '📝 שאלות', 
+                name: '📝 Questions', 
                 value: questionsDisplay,
                 inline: false 
             },
             { 
-                name: '📢 ערוץ רישום', 
+                name: '📢 Log Channel', 
                 value: logChannelDisplay,
                 inline: true 
             },
             { 
-                name: '🛡️ תפקידי מנהלים',
+                name: '🛡️ Manager Roles',
                 value: managerRolesDisplay,
                 inline: true 
             },
             { 
-                name: '🗑️ תקופת שמירה',
-                value: `בהמתנה: **${settings.pendingApplicationRetentionDays ?? 30}י** · בדוקה: **${settings.reviewedApplicationRetentionDays ?? 14}י**`,
+                name: '🗑️ Retention Period',
+                value: `Pending: **${settings.pendingApplicationRetentionDays ?? 30}d** · Reviewed: **${settings.reviewedApplicationRetentionDays ?? 14}d**`,
                 inline: false 
             },
         )
-        .setFooter({ text: 'לוח הבקרה ייסגר לאחר 10 דקות של אי-פעילות' })
+        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
         .setTimestamp();
 
+    // Create dropdown button with customization options
     const configMenu = buildApplicationSelectMenu(guildId, selectedRole.roleId);
 
+    // Create control buttons
     const controlButtons = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId(`app_toggle_${selectedRole.roleId}`)
-            .setLabel(isEnabled ? 'בטל מועמדות' : 'הפעל מועמדות')
+            .setLabel(isEnabled ? 'Disable Application' : 'Enable Application')
             .setStyle(isEnabled ? ButtonStyle.Danger : ButtonStyle.Success),
         new ButtonBuilder()
             .setCustomId(`app_delete_${selectedRole.roleId}`)
-            .setLabel('מחק מועמדות')
+            .setLabel('Delete Application')
             .setStyle(ButtonStyle.Danger)
             .setEmoji('🗑️'),
     );
@@ -372,6 +378,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
     collector.on('collect', async selectInteraction => {
         const selectedOption = selectInteraction.values[0];
         try {
+            // Catch expired interactions
             if (!selectInteraction.isStringSelectMenu()) {
                 return;
             }
@@ -397,15 +404,15 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             }
         } catch (error) {
             if (error instanceof TitanBotError) {
-                logger.debug(`שגיאת אימות בהגדרות מועמדויות: ${error.message}`);
+                logger.debug(`Applications config validation error: ${error.message}`);
             } else {
-                logger.error('שגיאה בלוח בקרה של מועמדויות:', error);
+                logger.error('Unexpected applications dashboard error:', error);
             }
 
             const errorMessage =
                 error instanceof TitanBotError
-                    ? error.userMessage || 'אירעה שגיאה בעיבוד הבחירה שלך.'
-                    : 'אירעה שגיאה בעדכון ההגדרות.';
+                    ? error.userMessage || 'An error occurred while processing your selection.'
+                    : 'An unexpected error occurred while updating the configuration.';
 
             if (!selectInteraction.replied && !selectInteraction.deferred) {
                 await safeDeferInteraction(selectInteraction);
@@ -413,7 +420,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
             await selectInteraction
                 .followUp({
-                    embeds: [errorEmbed('שגיאת הגדרה', errorMessage)],
+                    embeds: [errorEmbed('Configuration Error', errorMessage)],
                     flags: MessageFlags.Ephemeral,
                 })
                 .catch(() => {});
@@ -423,8 +430,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
     collector.on('end', async (collected, reason) => {
         if (reason === 'time') {
             const timeoutEmbed = new EmbedBuilder()
-                .setTitle('\u23f0 לוח בקרה פג תוקף')
-                .setDescription('לוח בקרה זה סגור בגלל אי-פעילות. בחר את הפקודה שוב כדי להמשיך.')
+                .setTitle('\u23f0 Dashboard Timed Out')
+                .setDescription('This dashboard has been closed due to inactivity. Please run the command again to continue.')
                 .setColor(getColor('error'));
                 
             await InteractionHelper.safeEditReply(interaction, {
@@ -434,6 +441,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         }
     });
 
+    // ── Global Toggle Button Collector ──────────────────────────────────────────
     if (!selectedRoleId) {
         const globalToggleCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
@@ -451,28 +459,30 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const wasEnabled = settings.enabled === true;
                 settings.enabled = !wasEnabled;
 
+                // Save the updated settings
                 await saveApplicationSettings(interaction.client, guildId, settings);
 
+                // Refresh dashboard to show new status
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 const updatedRoles = await getApplicationRoles(interaction.client, guildId);
                 await showGlobalDashboard(interaction, updatedSettings, updatedRoles, guildId, interaction.client);
 
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
-                        wasEnabled ? '🔴 מועמדויות בטלו' : '🟢 מועמדויות הופעלו',
-                        `מערכת המועמדויות כעת **${wasEnabled ? 'בטלה' : 'מופעלת'}**.\n\n${
+                        wasEnabled ? '🔴 Applications Disabled' : '🟢 Applications Enabled',
+                        `The applications system is now **${wasEnabled ? 'disabled' : 'enabled'}**.\n\n${
                             wasEnabled 
-                                ? 'חברים לא יוכלו עוד להגיש בקשות עבור תפקידים.' 
-                                : 'חברים כעת יכולים להתחיל להגיש בקשות עבור תפקידים.'
+                                ? 'Members will no longer be able to apply for roles.' 
+                                : 'Members can now start applying for roles.'
                         }`,
                     )],
                     flags: MessageFlags.Ephemeral,
                 });
 
             } catch (error) {
-                logger.error('שגיאה בהחלפת סטטוס מועמדויות גלובלי:', error);
+                logger.error('Error toggling global application status:', error);
                 await toggleInteraction.followUp({
-                    embeds: [errorEmbed('שגיאה', 'אירעה שגיאה בהחלפת סטטוס המועמדויות.')],
+                    embeds: [errorEmbed('Error', 'An error occurred while toggling the application status.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -481,8 +491,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         globalToggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ פג תוקף ההגדרה')
-                    .setDescription('סדרת לוח בקרה זו פגה תוקף בגלל אי-פעילות (10 דקות).\n\nכדי להמשיך בהגדרת המועמדויות שלך, בחר את הפקודה שוב.')
+                    .setTitle('⏱️ Configuration Timeout')
+                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -493,6 +503,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         });
     }
 
+    // ── Delete Button Collector (for application-specific dashboard) ──────────────
     if (selectedRoleId) {
         const btnCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
@@ -503,22 +514,23 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         });
 
         btnCollector.on('collect', async btnInteraction => {
+            // Show confirmation modal
             const appRoleForDelete = roles.find(r => r.roleId === selectedRoleId);
-            const appNameForDelete = appRoleForDelete?.name ?? 'מועמדות זו';
+            const appNameForDelete = appRoleForDelete?.name ?? 'this application';
 
             const confirmModal = new ModalBuilder()
                 .setCustomId('app_delete_confirm')
-                .setTitle('אישור מחיקת מועמדות');
+                .setTitle('Confirm Application Deletion');
 
             const deleteWarningText = new TextDisplayBuilder()
-                .setContent(`⚠️ אתה עומד למחוק בצורה קבועה את **${appNameForDelete}**. כל המועמדויות המאוחסנות וההגדרות עבור תפקיד זה יוסרו ולא יוכלו להשלם.`);
+                .setContent(`⚠️ You are about to permanently delete **${appNameForDelete}**. All stored applications and settings for this role will be removed and cannot be recovered.`);
 
             const deleteCheckbox = new CheckboxBuilder()
                 .setCustomId('confirm_delete')
                 .setDefault(false);
 
             const deleteCheckboxLabel = new LabelBuilder()
-                .setLabel('אני מאשר — זה לא ניתן לביטול')
+                .setLabel('I confirm — this cannot be undone')
                 .setCheckboxComponent(deleteCheckbox);
 
             confirmModal
@@ -528,9 +540,9 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             try {
                 await btnInteraction.showModal(confirmModal);
             } catch (error) {
-                logger.error('שגיאה בהצגת דיאלוג אישור מחיקה:', error);
+                logger.error('Error showing delete confirmation modal:', error);
                 await btnInteraction.followUp({
-                    embeds: [errorEmbed('שגיאה', 'נכשל בהצגת דיאלוג האישור. אנא נסה שוב.')],
+                    embeds: [errorEmbed('Error', 'Failed to show confirmation modal. Please try again.')],
                     flags: MessageFlags.Ephemeral,
                 }).catch(() => {});
                 return;
@@ -545,7 +557,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
                 if (!confirmSubmit) {
                     await btnInteraction.followUp({
-                        embeds: [errorEmbed('בוטל', 'מחיקת המועמדות בוטלה.')],
+                        embeds: [errorEmbed('Cancelled', 'Application deletion was cancelled.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
@@ -554,20 +566,21 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const confirmed = confirmSubmit.fields.getCheckbox('confirm_delete');
                 if (!confirmed) {
                     await confirmSubmit.reply({
-                        embeds: [errorEmbed('לא אושר', 'עליך לסמן את תיבת האישור כדי למחוק את המועמדות.')],
+                        embeds: [errorEmbed('Not Confirmed', 'You must tick the confirmation checkbox to delete the application.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
                 }
 
+                // Delete the application
                 await handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client);
                 collector.stop();
                 btnCollector.stop();
 
             } catch (error) {
-                logger.error('שגיאה באישור מחיקת המועמדות:', error);
+                logger.error('Error confirming application deletion:', error);
                 await btnInteraction.followUp({
-                    embeds: [errorEmbed('שגיאה', 'אירעה שגיאה במחיקת המועמדות.')],
+                    embeds: [errorEmbed('Error', 'An error occurred while deleting the application.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -576,8 +589,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         btnCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ פג תוקף ההגדרה')
-                    .setDescription('סדרת לוח בקרה זו פגה תוקף בגלל אי-פעילות (10 דקות).\n\nכדי להמשיך בהגדרת המועמדויות שלך, בחר את הפקודה שוב.')
+                    .setTitle('⏱️ Configuration Timeout')
+                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -587,6 +600,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             }
         });
 
+        // ── Toggle Enable/Disable Button Collector ──────────────────────────────
         const toggleCollector = interaction.channel.createMessageComponentCollector({
             componentType: ComponentType.Button,
             filter: i =>
@@ -600,10 +614,11 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
             if (!deferred) return;
             
             try {
+                // Find and toggle the role
                 const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
                 if (roleIndex === -1) {
                     await toggleInteraction.followUp({
-                        embeds: [errorEmbed('לא נמצא', 'תפקיד המועמדויות לא נמצא.')],
+                        embeds: [errorEmbed('Not Found', 'Application role not found.')],
                         flags: MessageFlags.Ephemeral,
                     });
                     return;
@@ -612,28 +627,30 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                 const wasEnabled = roles[roleIndex].enabled !== false;
                 roles[roleIndex].enabled = !wasEnabled;
 
+                // Save the updated roles
                 await saveApplicationRoles(interaction.client, guildId, roles);
 
+                // Refresh dashboard to show new status
                 const updatedRole = roles[roleIndex];
                 const updatedSettings = await getApplicationSettings(interaction.client, guildId);
                 await showApplicationDashboard(interaction, updatedRole, updatedSettings, roles, guildId, interaction.client);
 
                 await toggleInteraction.followUp({
                     embeds: [successEmbed(
-                        wasEnabled ? '🔴 מועמדות בטלה' : '🟢 מועמדות הופעלה',
-                        `מועמדות **${updatedRole.name}** כעת **${wasEnabled ? 'בטלה' : 'מופעלת'}**.\n\n${
+                        wasEnabled ? '🔴 Application Disabled' : '🟢 Application Enabled',
+                        `The **${updatedRole.name}** application is now **${wasEnabled ? 'disabled' : 'enabled'}**.\n\n${
                             wasEnabled 
-                                ? 'מועמדות זו לא תופיע עוד באפשרויות `/apply submit`.' 
-                                : 'מועמדות זו תופיע כעת באפשרויות `/apply submit`.'
+                                ? 'This application will no longer appear in `/apply submit` options.' 
+                                : 'This application will now appear in `/apply submit` options.'
                         }`,
                     )],
                     flags: MessageFlags.Ephemeral,
                 });
 
             } catch (error) {
-                logger.error('שגיאה בהחלפת סטטוס המועמדות:', error);
+                logger.error('Error toggling application status:', error);
                 await toggleInteraction.followUp({
-                    embeds: [errorEmbed('שגיאה', 'אירעה שגיאה בהחלפת סטטוס המועמדות.')],
+                    embeds: [errorEmbed('Error', 'An error occurred while toggling the application status.')],
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -642,8 +659,8 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
         toggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setTitle('⏱️ פג תוקף ההגדרה')
-                    .setDescription('סדרת לוח בקרה זו פגה תוקף בגלל אי-פעילות (10 דקות).\n\nכדי להמשיך בהגדרת המועמדויות שלך, בחר את הפקודה שוב.')
+                    .setTitle('⏱️ Configuration Timeout')
+                    .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));
                     
                 await InteractionHelper.safeEditReply(interaction, {
@@ -660,26 +677,26 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 function buildApplicationSelectMenu(guildId, roleId) {
     return new StringSelectMenuBuilder()
         .setCustomId(`app_cfg_${roleId}`)
-        .setPlaceholder('בחר הגדרה להגדרה...')
+        .setPlaceholder('Select a setting to configure...')
         .addOptions(
             new StringSelectMenuOptionBuilder()
-                .setLabel('ערוץ רישום')
-                .setDescription('הגדר את הערוץ שבו מועמדויות מועברות')
+                .setLabel('Log Channel')
+                .setDescription('Set the channel where applications are logged')
                 .setValue('log_channel')
                 .setEmoji('📢'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('תפקידי מנהלים')
-                .setDescription('הוסף או הסר תפקיד שיכול לנהל מועמדויות')
+                .setLabel('Manager Roles')
+                .setDescription('Add or remove a role that can manage applications')
                 .setValue('manager_role')
                 .setEmoji('🛡️'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('עריכת שאלות')
-                .setDescription('התאם אישית את השאלות המוצגות בטופס המועמדות')
+                .setLabel('Edit Questions')
+                .setDescription('Customise the questions shown on the application form')
                 .setValue('questions')
                 .setEmoji('📝'),
             new StringSelectMenuOptionBuilder()
-                .setLabel('תקופת שמירה')
-                .setDescription('הגדר כמה זמן מועמדויות בהמתנה ובדוקות יישמרו')
+                .setLabel('Retention Period')
+                .setDescription('Set how long pending and reviewed applications are kept')
                 .setValue('retention')
                 .setEmoji('🗑️'),
         );
@@ -693,7 +710,7 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
 
     const channelSelect = new ChannelSelectMenuBuilder()
         .setCustomId('app_cfg_log_channel')
-        .setPlaceholder('בחר ערוץ טקסט...')
+        .setPlaceholder('Select a text channel...')
         .addChannelTypes(ChannelType.GuildText)
         .setMaxValues(1);
 
@@ -706,9 +723,9 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
     await selectInteraction.followUp({
         embeds: [
             new EmbedBuilder()
-                .setTitle('📢 ערוץ רישום')
+                .setTitle('📢 Log Channel')
                 .setDescription(
-                    `**נוכחי:** ${currentChannel ? `<#${currentChannel}>` : '`לא הוגדר`'}\n\nבחר את הערוץ שבו הגשות מועמדויות חדשות יירשמו.`,
+                    `**Current:** ${currentChannel ? `<#${currentChannel}>` : '`Not set`'}\n\nSelect the channel where new application submissions will be logged.`,
                 )
                 .setColor(getColor('info')),
         ],
@@ -732,23 +749,25 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
 
         if (!channel.isTextBased()) {
             await chanInteraction.followUp({
-                embeds: [errorEmbed('ערוץ לא חוקי', 'בחר ערוץ טקסט.')],
+                embeds: [errorEmbed('Invalid Channel', 'Please select a text channel.')],
                 flags: MessageFlags.Ephemeral,
             });
             return;
         }
 
         if (selectedRoleId) {
+            // Save per-application log channel
             const roleSettings = await getApplicationRoleSettings(client, guildId, selectedRoleId);
             roleSettings.logChannelId = channel.id;
             await saveApplicationRoleSettings(client, guildId, selectedRoleId, roleSettings);
         } else {
+            // Save global log channel
             settings.logChannelId = channel.id;
             await saveApplicationSettings(client, guildId, settings);
         }
 
         await chanInteraction.followUp({
-            embeds: [successEmbed('✅ ערוץ רישום עודכן', `הגשות מועמדויות יירשמו כעת ב-${channel}.`)],
+            embeds: [successEmbed('✅ Log Channel Updated', `Application submissions will now be logged in ${channel}.`)],
             flags: MessageFlags.Ephemeral,
         });
 
@@ -758,7 +777,7 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
     chanCollector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             selectInteraction.followUp({
-                embeds: [errorEmbed('פג תוקף', 'לא נבחר ערוץ. ההגדרה לא שונתה.')],
+                embeds: [errorEmbed('Timed Out', 'No channel was selected. The setting was not changed.')],
                 flags: MessageFlags.Ephemeral,
             }).catch(() => {});
         }
@@ -767,25 +786,25 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
 
 // ─── Manager Role ─────────────────────────────────────────────────────────────
 
-async function handleManagerRole(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
+async function handleManagerRole(selectInteraction, rootInteraction, settings, roles, guildId, client) {
     const deferred = await safeDeferInteraction(selectInteraction);
     if (!deferred) return;
 
     const currentRoles = settings.managerRoles ?? [];
     const currentList =
-        currentRoles.length > 0 ? currentRoles.map(id => `<@&${id}>`).join(', ') : '`אף אחד`';
+        currentRoles.length > 0 ? currentRoles.map(id => `<@&${id}>`).join(', ') : '`None`';
 
     const roleSelect = new RoleSelectMenuBuilder()
         .setCustomId('app_cfg_manager_role')
-        .setPlaceholder('בחר תפקיד להוספה או הסרה...')
+        .setPlaceholder('Select a role to add or remove...')
         .setMaxValues(1);
 
     await selectInteraction.followUp({
         embeds: [
             new EmbedBuilder()
-                .setTitle('🛡️ תפקידי מנהלים')
+                .setTitle('🛡️ Manager Roles')
                 .setDescription(
-                    `**נוכחי:** ${currentList}\n\nבחר תפקיד ל**החלף** — בחירת תפקיד מנהל קיים תסירו, בחירת חדש תוסיפו.`,
+                    `**Current:** ${currentList}\n\nSelect a role to **toggle** it — selecting an existing manager role will remove it, selecting a new one will add it.`,
                 )
                 .setColor(getColor('info')),
         ],
@@ -821,8 +840,8 @@ async function handleManagerRole(selectInteraction, rootInteraction, settings, r
         await roleInteraction.followUp({
             embeds: [
                 successEmbed(
-                    '✅ תפקיד מנהל עודכן',
-                    `${role} **${wasPresent ? 'הוסר מ' : 'נוסף ל'}** רשימת תפקידי המנהלים.`,
+                    '✅ Manager Role Updated',
+                    `${role} has been **${wasPresent ? 'removed from' : 'added to'}** the manager roles list.`,
                 ),
             ],
             flags: MessageFlags.Ephemeral,
@@ -834,7 +853,7 @@ async function handleManagerRole(selectInteraction, rootInteraction, settings, r
     roleCollector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             selectInteraction.followUp({
-                embeds: [errorEmbed('פג תוקף', 'לא נבחר תפקיד. ההגדרה לא שונתה.')],
+                embeds: [errorEmbed('Timed Out', 'No role was selected. The setting was not changed.')],
                 flags: MessageFlags.Ephemeral,
             }).catch(() => {});
         }
@@ -853,12 +872,12 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
 
     const modal = new ModalBuilder()
         .setCustomId('app_cfg_questions')
-        .setTitle('עריכת שאלות המועמדות')
+        .setTitle('Edit Application Questions')
         .addComponents(
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('q1')
-                    .setLabel('שאלה 1 (חובה)')
+                    .setLabel('Question 1 (required)')
                     .setStyle(TextInputStyle.Short)
                     .setValue(currentQuestions[0] ?? '')
                     .setMaxLength(100)
@@ -868,7 +887,7 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('q2')
-                    .setLabel('שאלה 2 (אופציונלי)')
+                    .setLabel('Question 2 (optional)')
                     .setStyle(TextInputStyle.Short)
                     .setValue(currentQuestions[1] ?? '')
                     .setMaxLength(100)
@@ -877,7 +896,7 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('q3')
-                    .setLabel('שאלה 3 (אופציונלי)')
+                    .setLabel('Question 3 (optional)')
                     .setStyle(TextInputStyle.Short)
                     .setValue(currentQuestions[2] ?? '')
                     .setMaxLength(100)
@@ -886,7 +905,7 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('q4')
-                    .setLabel('שאלה 4 (אופציונלי)')
+                    .setLabel('Question 4 (optional)')
                     .setStyle(TextInputStyle.Short)
                     .setValue(currentQuestions[3] ?? '')
                     .setMaxLength(100)
@@ -895,7 +914,7 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('q5')
-                    .setLabel('שאלה 5 (אופציונלי)')
+                    .setLabel('Question 5 (optional)')
                     .setStyle(TextInputStyle.Short)
                     .setValue(currentQuestions[4] ?? '')
                     .setMaxLength(100)
@@ -921,17 +940,19 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
 
     if (newQuestions.length === 0) {
         await submitted.reply({
-            embeds: [errorEmbed('אין שאלות', 'נדרשת לפחות שאלה אחת.')],
+            embeds: [errorEmbed('No Questions', 'At least one question is required.')],
             flags: MessageFlags.Ephemeral,
         });
         return;
     }
 
     if (selectedRoleId) {
+        // Save per-application questions
         const roleSettings = await getApplicationRoleSettings(client, guildId, selectedRoleId);
         roleSettings.questions = newQuestions;
         await saveApplicationRoleSettings(client, guildId, selectedRoleId, roleSettings);
     } else {
+        // Save global questions
         settings.questions = newQuestions;
         await saveApplicationSettings(client, guildId, settings);
     }
@@ -939,8 +960,8 @@ async function handleQuestions(selectInteraction, rootInteraction, settings, rol
     await submitted.reply({
         embeds: [
             successEmbed(
-                '✅ שאלות עודכנו',
-                `${newQuestions.length} שאלה${newQuestions.length !== 1 ? 'ות' : ''} נשמרו.`,
+                '✅ Questions Updated',
+                `${newQuestions.length} question${newQuestions.length !== 1 ? 's' : ''} saved.`,
             ),
         ],
         flags: MessageFlags.Ephemeral,
@@ -957,15 +978,15 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
 
     const roleSelect = new RoleSelectMenuBuilder()
         .setCustomId('app_cfg_role_add_pick')
-        .setPlaceholder('בחר את תפקיד Discord להוספה...')
+        .setPlaceholder('Select the Discord role to add...')
         .setMaxValues(1);
 
     await selectInteraction.followUp({
         embeds: [
             new EmbedBuilder()
-                .setTitle('➕ הוסף תפקיד מועמדויות')
+                .setTitle('➕ Add Application Role')
                 .setDescription(
-                    'בחר תפקיד שחברים יכולים להגיש בקשה עבורו. ניתן לקבוע שם תצוגה מותאם אחרי הבחירה.',
+                    'Select a role that members can apply for. You can optionally set a custom display name after selecting.',
                 )
                 .setColor(getColor('info')),
         ],
@@ -984,25 +1005,27 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
     roleCollector.on('collect', async roleInteraction => {
         const role = roleInteraction.roles.first();
 
+        // Check for duplicate
         if (roles.some(r => r.roleId === role.id)) {
             const deferred = await safeDeferInteraction(roleInteraction);
             if (!deferred) return;
             
             await roleInteraction.followUp({
-                embeds: [errorEmbed('כבר נוסף', `${role} כבר תפקיד מועמדויות.`)],
+                embeds: [errorEmbed('Already Added', `${role} is already an application role.`)],
                 flags: MessageFlags.Ephemeral,
             });
             return;
         }
 
+        // Show modal for optional custom name
         const nameModal = new ModalBuilder()
             .setCustomId('app_cfg_role_add_name')
-            .setTitle('שם תפקיד המועמדות')
+            .setTitle('Application Role Name')
             .addComponents(
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId('role_name')
-                        .setLabel('שם תצוגה (השאר ריק כדי להשתמש בשם התפקיד)')
+                        .setLabel('Display name (leave blank to use role name)')
                         .setStyle(TextInputStyle.Short)
                         .setValue(role.name)
                         .setMaxLength(50)
@@ -1030,8 +1053,8 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
         await nameSubmit.reply({
             embeds: [
                 successEmbed(
-                    '✅ תפקיד נוסף',
-                    `${role} נוסף כתפקיד מועמדויות עם שם **${customName}**.`,
+                    '✅ Role Added',
+                    `${role} has been added as an application role with name **${customName}**.`,
                 ),
             ],
             flags: MessageFlags.Ephemeral,
@@ -1043,7 +1066,7 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
     roleCollector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             selectInteraction.followUp({
-                embeds: [errorEmbed('פג תוקף', 'לא נבחר תפקיד. כלום לא נוסף.')],
+                embeds: [errorEmbed('Timed Out', 'No role was selected. Nothing was added.')],
                 flags: MessageFlags.Ephemeral,
             }).catch(() => {});
         }
@@ -1058,7 +1081,7 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
 
     if (roles.length === 0) {
         await selectInteraction.followUp({
-            embeds: [errorEmbed('אין תפקידים', 'אין תפקידי מועמדויות מוגדרים להסרה.')],
+            embeds: [errorEmbed('No Roles', 'There are no application roles configured to remove.')],
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -1066,15 +1089,15 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
 
     const roleSelect = new RoleSelectMenuBuilder()
         .setCustomId('app_cfg_role_remove_pick')
-        .setPlaceholder('בחר את התפקיד להסרה...')
+        .setPlaceholder('Select the role to remove...')
         .setMaxValues(1);
 
     await selectInteraction.followUp({
         embeds: [
             new EmbedBuilder()
-                .setTitle('➖ הסר תפקיד מועמדויות')
+                .setTitle('➖ Remove Application Role')
                 .setDescription(
-                    `**תפקידים נוכחיים:** ${roles.map(r => `<@&${r.roleId}> (${r.name})`).join(', ')}\n\nבחר את התפקיד להסרה מרשימת המועמדויות.`,
+                    `**Current roles:** ${roles.map(r => `<@&${r.roleId}> (${r.name})`).join(', ')}\n\nSelect the role to remove from the applications list.`,
                 )
                 .setColor(getColor('info')),
         ],
@@ -1099,7 +1122,7 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
 
         if (index === -1) {
             await roleInteraction.followUp({
-                embeds: [errorEmbed('לא נמצא', `${role} לא ברשימת תפקידי המועמדויות.`)],
+                embeds: [errorEmbed('Not Found', `${role} is not in the application roles list.`)],
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -1109,7 +1132,7 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
         await saveApplicationRoles(client, guildId, roles);
 
         await roleInteraction.followUp({
-            embeds: [successEmbed('✅ תפקיד הוסר', `${role} הוסר מתפקידי המועמדויות.`)],
+            embeds: [successEmbed('✅ Role Removed', `${role} has been removed from the application roles.`)],
             flags: MessageFlags.Ephemeral,
         });
 
@@ -1119,7 +1142,7 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
     roleCollector.on('end', (collected, reason) => {
         if (reason === 'time' && collected.size === 0) {
             selectInteraction.followUp({
-                embeds: [errorEmbed('פג תוקף', 'לא נבחר תפקיד. כלום לא הוסר.')],
+                embeds: [errorEmbed('Timed Out', 'No role was selected. Nothing was removed.')],
                 flags: MessageFlags.Ephemeral,
             }).catch(() => {});
         }
@@ -1128,20 +1151,20 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
 
 // ─── Retention Period ─────────────────────────────────────────────────────────
 
-async function handleRetention(selectInteraction, rootInteraction, settings, roles, guildId, client, selectedRoleId) {
+async function handleRetention(selectInteraction, rootInteraction, settings, roles, guildId, client) {
     const modal = new ModalBuilder()
         .setCustomId('app_cfg_retention')
-        .setTitle('תקופות שמירה של מועמדויות');
+        .setTitle('Application Retention Periods');
 
     const retentionInfo = new TextDisplayBuilder()
         .setContent(
-            '**בהמתנה** — כמה זמן מועמדויות ללא תשובה/בתהליך נשמרות לפני הסרה אוטומטית.\n' +
-            '**בדוקה** — כמה זמן מועמדויות אושרות או נדחות נשמרות.\n' +
-            '-# הכנס מספר שלם בין 1 ל-3650 (מקסימום 10 שנים).',
+            '**Pending** — how long unanswered/in-progress applications are kept before being automatically removed.\n' +
+            '**Reviewed** — how long approved or denied applications are kept.\n' +
+            '-# Enter a whole number between 1 and 3650 (max 10 years).',
         );
 
     const pendingLabel = new LabelBuilder()
-        .setLabel('שמירה בהמתנה (ימים)')
+        .setLabel('Pending retention (days)')
         .setTextInputComponent(
             new TextInputBuilder()
                 .setCustomId('pending_days')
@@ -1153,7 +1176,7 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
         );
 
     const reviewedLabel = new LabelBuilder()
-        .setLabel('שמירה בדוקה (ימים)')
+        .setLabel('Reviewed retention (days)')
         .setTextInputComponent(
             new TextInputBuilder()
                 .setCustomId('reviewed_days')
@@ -1185,7 +1208,7 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
 
     if (isNaN(pendingDays) || pendingDays < 1 || pendingDays > 3650) {
         await submitted.reply({
-            embeds: [errorEmbed('ערך לא חוקי', 'שמירה בהמתנה חייבת להיות מספר שלם בין **1** ל-**3650** ימים.')],
+            embeds: [errorEmbed('Invalid Value', 'Pending retention must be a whole number between **1** and **3650** days.')],
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -1193,7 +1216,7 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
 
     if (isNaN(reviewedDays) || reviewedDays < 1 || reviewedDays > 3650) {
         await submitted.reply({
-            embeds: [errorEmbed('ערך לא חוקי', 'שמירה בדוקה חייבת להיות מספר שלם בין **1** ל-**3650** ימים.')],
+            embeds: [errorEmbed('Invalid Value', 'Reviewed retention must be a whole number between **1** and **3650** days.')],
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -1206,8 +1229,8 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
     await submitted.reply({
         embeds: [
             successEmbed(
-                '✅ שמירה עודכנה',
-                `מועמדויות בהמתנה יישמרו למשך **${pendingDays} ימים**.\nמועמדויות בדוקות יישמרו למשך **${reviewedDays} ימים**.`,
+                '✅ Retention Updated',
+                `Pending applications will be kept for **${pendingDays} days**.\nReviewed applications will be kept for **${reviewedDays} days**.`,
             ),
         ],
         flags: MessageFlags.Ephemeral,
@@ -1220,10 +1243,11 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
 
 async function handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, roles, client) {
     try {
+        // Find the application in the roles array
         const roleIndex = roles.findIndex(r => r.roleId === selectedRoleId);
         if (roleIndex === -1) {
             await confirmSubmit.reply({
-                embeds: [errorEmbed('לא נמצא', 'תפקיד המועמדויות לא נמצא.')],
+                embeds: [errorEmbed('Not Found', 'Application role not found.')],
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -1231,32 +1255,40 @@ async function handleDeleteApplication(confirmSubmit, selectedRoleId, guildId, r
 
         const deletedRole = roles[roleIndex];
 
+        // Remove from roles array
         roles.splice(roleIndex, 1);
+
+        // Save updated roles list
         await saveApplicationRoles(client, guildId, roles);
 
+        // Delete per-application settings
         await deleteApplicationRoleSettings(client, guildId, selectedRoleId);
 
+        // Get all applications for this guild and find ones with this roleId
         const allApplications = await getApplications(client, guildId);
         const applicationsToDelete = allApplications.filter(app => app.roleId === selectedRoleId);
 
+        // Delete each application
         for (const app of applicationsToDelete) {
             await deleteApplication(client, guildId, app.id, app.userId);
         }
 
+        // Send success message
         await confirmSubmit.reply({
             embeds: [
                 successEmbed(
-                    '🗑️ מועמדות נמחקה',
-                    `המועמדות עבור <@&${selectedRoleId}> (**${deletedRole.name}**) נמחקה לחלוטין.\n\nנמחקו: **${applicationsToDelete.length}** מועמדות${applicationsToDelete.length !== 1 ? '' : ''}`,
+                    '🗑️ Application Deleted',
+                    `The application for <@&${selectedRoleId}> (**${deletedRole.name}**) has been permanently deleted.\n\n` +
+                    `Deleted: **${applicationsToDelete.length}** application${applicationsToDelete.length !== 1 ? 's' : ''}`,
                 ),
             ],
             flags: MessageFlags.Ephemeral,
         });
 
     } catch (error) {
-        logger.error('שגיאה ב-handleDeleteApplication:', error);
+        logger.error('Error in handleDeleteApplication:', error);
         await confirmSubmit.reply({
-            embeds: [errorEmbed('שגיאה', 'אירעה שגיאה במחיקת המועמדות. אנא נסה שוב.')],
+            embeds: [errorEmbed('Error', 'An error occurred while deleting the application. Please try again.')],
             flags: MessageFlags.Ephemeral,
         });
     }
