@@ -11,29 +11,29 @@ const BASE_MAX_REWARD = 900;
 const FISHING_ROD_MULTIPLIER = 1.5;
 
 const FISH_TYPES = [
-    { name: 'Bass', emoji: '🐟', rarity: 'common' },
-    { name: 'Salmon', emoji: '🐟', rarity: 'common' },
-    { name: 'Trout', emoji: '🐟', rarity: 'common' },
-    { name: 'Tuna', emoji: '🐟', rarity: 'uncommon' },
-    { name: 'Swordfish', emoji: '🐟', rarity: 'uncommon' },
-    { name: 'Octopus', emoji: '🐙', rarity: 'rare' },
-    { name: 'Lobster', emoji: '🦞', rarity: 'rare' },
-    { name: 'Shark', emoji: '🦈', rarity: 'epic' },
-    { name: 'Whale', emoji: '🐋', rarity: 'legendary' },
+    { name: 'בס', emoji: '🐟', rarity: 'common' },
+    { name: 'סלמון', emoji: '🐟', rarity: 'common' },
+    { name: 'פורל', emoji: '🐟', rarity: 'common' },
+    { name: 'טונה', emoji: '🐟', rarity: 'uncommon' },
+    { name: 'דג חרב', emoji: '🐟', rarity: 'uncommon' },
+    { name: 'תמנון', emoji: '🐙', rarity: 'rare' },
+    { name: 'לוביסטר', emoji: '🦞', rarity: 'rare' },
+    { name: 'כריש', emoji: '🦈', rarity: 'epic' },
+    { name: 'לווייתן', emoji: '🐋', rarity: 'legendary' },
 ];
 
 const CATCH_MESSAGES = [
-    "You cast your line into the crystal clear waters...",
-    "You wait patiently as your bobber floats...",
-    "After a few minutes of waiting, you feel a tug...",
-    "The water ripples as something takes your bait...",
-    "You reel in your catch with expert precision...",
+    "אתה משליך את חכת דיגך למים הבהירים...",
+    "אתה מחכה בסבלנות כשהשוקע שלך צף...",
+    "אחרי כמה דקות של המתנה, אתה מרגיש משיכה...",
+    "המים רוטטים כי משהו לוקח את הזימה שלך...",
+    "אתה משתוך את הדיג שלך בדיוק מומחה...",
 ];
 
 export default {
     data: new SlashCommandBuilder()
         .setName('fish')
-        .setDescription('Go fishing to catch fish and earn money'),
+        .setDescription('🎣 לך דיג כדי ללכוד דגים והרוויח כסף'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
@@ -57,7 +57,7 @@ export default {
                 throw createError(
                     "Fishing cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `You're too tired to fish right now. Rest for **${hours}h ${minutes}m** before fishing again.`,
+                    `אתה עייף מדי לדוג כרגע. תנוח למשך **${hours}h ${minutes}m** לפני דיג שוב.`,
                     { remaining, cooldownType: 'fish' }
                 );
             }
@@ -93,7 +93,7 @@ export default {
             
             if (hasFishingRod > 0) {
                 finalEarned = Math.floor(baseEarned * FISHING_ROD_MULTIPLIER);
-                multiplierMessage = `\n🎣 **Fishing Rod Bonus: +50%**`;
+                multiplierMessage = `\n🎣 **בונוס מוט דיג: +50%**`;
             }
 
             const catchMessage = CATCH_MESSAGES[Math.floor(Math.random() * CATCH_MESSAGES.length)];
@@ -112,23 +112,27 @@ export default {
             };
 
             const embed = createEmbed({
-                title: '🎣 Fishing Success!',
-                description: `${catchMessage}\n\nYou caught a **${fishCaught.emoji} ${fishCaught.name}**! You sold it for **$${finalEarned.toLocaleString()}**!${multiplierMessage}`,
+                title: '🎣 הצלחת דיג!',
+                description: `${catchMessage}\n\nתפסת **${fishCaught.emoji} ${fishCaught.name}**! מכרת אותו ב-**$${finalEarned.toLocaleString()}**!${multiplierMessage}`,
                 color: rarityColors[fishCaught.rarity]
             })
                 .addFields(
                     {
-                        name: "💵 New Cash Balance",
+                        name: "💵 יתרת מזומנים חדשה",
                         value: `$${userData.wallet.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "🐟 Rarity",
-                        value: fishCaught.rarity.charAt(0).toUpperCase() + fishCaught.rarity.slice(1),
+                        name: "🐟 נדירות",
+                        value: fishCaught.rarity === 'common' ? 'נפוץ' : 
+                               fishCaught.rarity === 'uncommon' ? 'נדיר' :
+                               fishCaught.rarity === 'rare' ? 'ממש נדיר' :
+                               fishCaught.rarity === 'epic' ? 'אפי' :
+                               'אגדה',
                         inline: true,
                     }
                 )
-                .setFooter({ text: `Next fishing trip available in 45 minutes.` });
+                .setFooter({ text: `טיול דיג הבא זמין בעוד 45 דקות.` });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'fish' })
