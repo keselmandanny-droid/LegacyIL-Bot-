@@ -14,11 +14,11 @@ const GAMBLE_COOLDOWN = 5 * 60 * 1000;
 export default {
     data: new SlashCommandBuilder()
         .setName('gamble')
-        .setDescription('Gamble your money for a chance to win more')
+        .setDescription('🎰 הימר את הכסף שלך ממילא להרוויח יותר')
         .addIntegerOption(option =>
             option
                 .setName('amount')
-                .setDescription('Amount of cash to gamble')
+                .setDescription('כמות מזומנים להימור')
                 .setRequired(true)
                 .setMinValue(1)
         ),
@@ -45,7 +45,7 @@ export default {
                 throw createError(
                     "Gamble cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `You need to cool down before gambling again. Wait **${minutes}m ${seconds}s**.`,
+                    `אתה צריך להתקרר לפני הימור שוב. חכה **${minutes}m ${seconds}s**.`,
                     { remaining, cooldownType: 'gamble' }
                 );
             }
@@ -54,7 +54,7 @@ export default {
                 throw createError(
                     "Insufficient cash for gamble",
                     ErrorTypes.VALIDATION,
-                    `You only have $${userData.wallet.toLocaleString()} cash, but you are trying to bet $${betAmount.toLocaleString()}.`,
+                    `יש לך רק $${userData.wallet.toLocaleString()} מזומנים, אבל אתה מנסה להמר $${betAmount.toLocaleString()}.`,
                     { required: betAmount, current: userData.wallet }
                 );
             }
@@ -68,14 +68,14 @@ export default {
             if (cloverCount > 0) {
                 winChance += CLOVER_WIN_BONUS;
                 userData.inventory["lucky_clover"] -= 1;
-                cloverMessage = `\n🍀 **Lucky Clover Consumed:** Your win chance was boosted!`;
+                cloverMessage = `\n🍀 **תלתן מזל הצוריך:** סיכוי הנצחון שלך הועלה!`;
                 usedClover = true;
             }
             
             else if (charmCount > 0) {
                 winChance += CHARM_WIN_BONUS;
                 userData.inventory["lucky_charm"] -= 1;
-                cloverMessage = `\n🍀 **Lucky Charm Used (${charmCount - 1} uses remaining):** Your win chance was boosted!`;
+                cloverMessage = `\n🍀 **קסם מזל בשימוש (${charmCount - 1} שימושים נותרו):** סיכוי הנצחון שלך הועלה!`;
                 usedCharm = true;
             }
 
@@ -88,15 +88,15 @@ export default {
 cashChange = amountWon;
 
                 resultEmbed = successEmbed(
-                    "🎉 You Won!",
-                    `You successfully gambled and turned your **$${betAmount.toLocaleString()}** bet into **$${amountWon.toLocaleString()}**!${cloverMessage}`,
+                    "🎉 ניצחת!",
+                    `בהצלחה הימרת והפכת את ההימור שלך של **$${betAmount.toLocaleString()}** ל-**$${amountWon.toLocaleString()}**!${cloverMessage}`,
                 );
             } else {
 cashChange = -betAmount;
 
                 resultEmbed = errorEmbed(
-                    "💔 You Lost...",
-                    `The dice rolled against you. You lost your **$${betAmount.toLocaleString()}** bet.`,
+                    "💔 הפסדת...",
+                    `הקוביות התגלגלו נגדך. הפסדת את ההימור שלך של **$${betAmount.toLocaleString()}**.`,
                 );
             }
 
@@ -108,29 +108,25 @@ userData.lastGamble = now;
             const newCash = userData.wallet;
 
             resultEmbed.addFields({
-                name: "💵 New Cash Balance",
+                name: "💵 יתרת מזומנים חדשה",
                 value: `$${newCash.toLocaleString()}`,
                 inline: true,
             });
 
             if (usedClover) {
                 resultEmbed.setFooter({
-                    text: `You have ${userData.inventory["lucky_clover"]} Lucky Clovers left. Win chance was ${Math.round(winChance * 100)}%.`,
+                    text: `יש לך ${userData.inventory["lucky_clover"]} תלתני מזל נותרים. סיכוי נצחון היה ${Math.round(winChance * 100)}%.`,
                 });
             } else if (usedCharm) {
                 resultEmbed.setFooter({
-                    text: `You have ${userData.inventory["lucky_charm"]} Lucky Charm uses left. Win chance was ${Math.round(winChance * 100)}%.`,
+                    text: `יש לך ${userData.inventory["lucky_charm"]} שימושי קסם מזל נותרים. סיכוי נצחון היה ${Math.round(winChance * 100)}%.`,
                 });
             } else {
                 resultEmbed.setFooter({
-                    text: `Next gamble available in 5 minutes. Base win chance: ${Math.round(BASE_WIN_CHANCE * 100)}%.`,
+                    text: `הימור הבא זמין בעוד 5 דקות. סיכוי נצחון בסיסי: ${Math.round(BASE_WIN_CHANCE * 100)}%.`,
                 });
             }
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [resultEmbed] });
     }, { command: 'gamble' })
 };
-
-
-
-
