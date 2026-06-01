@@ -14,11 +14,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("greroll")
-        .setDescription("Rerolls the winner(s) for an ended giveaway.")
+        .setDescription("מגריל מחדש את הזוכה/ים בהגרלה שהסתיימה.")
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the ended giveaway.")
+                .setDescription("מזהה ההודעה של ההגרלה שהסתיימה.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -160,7 +160,6 @@ export default {
                     .map((id) => `<@${id}>`)
                     .join(", ");
                 
-                // Edit the original winner ping if it still exists, otherwise send a new one
                 const existingPingMsg = giveaway.winnerPingMessageId
                     ? await channel.messages.fetch(giveaway.winnerPingMessageId).catch(() => null)
                     : null;
@@ -240,7 +239,6 @@ export default {
                 .map((id) => `<@${id}>`)
                 .join(", ");
             
-            // Edit the original winner ping if it still exists, otherwise send a new one
             const existingPingMsg = giveaway.winnerPingMessageId
                 ? await channel.messages.fetch(giveaway.winnerPingMessageId).catch(() => null)
                 : null;
@@ -309,6 +307,3 @@ export default {
         }
     },
 };
-
-
-
