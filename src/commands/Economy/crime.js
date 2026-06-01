@@ -12,28 +12,28 @@ const FAILURE_RATE = 0.4;
 const JAIL_TIME = 2 * 60 * 60 * 1000;
 
 const CRIME_TYPES = [
-    { name: "Pickpocketing", min: 100, max: 500, risk: 0.3 },
-    { name: "Burglary", min: 300, max: 1000, risk: 0.4 },
-    { name: "Bank Heist", min: 1000, max: 5000, risk: 0.6 },
-    { name: "Art Theft", min: 2000, max: 10000, risk: 0.7 },
-    { name: "Cybercrime", min: 5000, max: 20000, risk: 0.8 },
+    { name: "כיס חיתוך", min: 100, max: 500, risk: 0.3 },
+    { name: "פריצה", min: 300, max: 1000, risk: 0.4 },
+    { name: "שוד בנק", min: 1000, max: 5000, risk: 0.6 },
+    { name: "גניבת אמנות", min: 2000, max: 10000, risk: 0.7 },
+    { name: "פשע סייבר", min: 5000, max: 20000, risk: 0.8 },
 ];
 
 export default {
     data: new SlashCommandBuilder()
         .setName('crime')
-        .setDescription('Commit a crime to earn money (risky)')
+        .setDescription('🔪 בצע פשע כדי להרוויח כסף (מסוכן)')
         .addStringOption(option =>
             option
                 .setName('type')
-                .setDescription('Type of crime to commit')
+                .setDescription('סוג פשע לביצוע')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'Pickpocketing', value: 'pickpocketing' },
-                    { name: 'Burglary', value: 'burglary' },
-                    { name: 'Bank Heist', value: 'bank-heist' },
-                    { name: 'Art Theft', value: 'art-theft' },
-                    { name: 'Cybercrime', value: 'cybercrime' },
+                    { name: 'כיס חיתוך', value: 'pickpocketing' },
+                    { name: 'פריצה', value: 'burglary' },
+                    { name: 'שוד בנק', value: 'bank-heist' },
+                    { name: 'גניבת אמנות', value: 'art-theft' },
+                    { name: 'פשע סייבר', value: 'cybercrime' },
                 )
         ),
 
@@ -53,7 +53,7 @@ export default {
                 throw createError(
                     "User is in jail",
                     ErrorTypes.RATE_LIMIT,
-                    `You're in jail for ${timeLeft} more minutes!`,
+                    `אתה בכלא לעוד ${timeLeft} דקות!`,
                     { jailTimeRemaining: userData.jailedUntil - now }
                 );
             }
@@ -63,7 +63,7 @@ export default {
                 throw createError(
                     "Crime cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `You need to wait ${timeLeft} more minutes before committing another crime.`,
+                    `אתה צריך להמתין ${timeLeft} דקות נוספות לפני ביצוע פשע אחר.`,
                     { remaining: lastCrime + CRIME_COOLDOWN - now, cooldownType: 'crime' }
                 );
             }
@@ -77,7 +77,7 @@ export default {
                 throw createError(
                     "Invalid crime type",
                     ErrorTypes.VALIDATION,
-                    "Please select a valid crime type.",
+                    "אנא בחר סוג פשע חוקי.",
                     { crimeType }
                 );
             }
@@ -96,8 +96,8 @@ export default {
                 await setEconomyData(client, guildId, userId, userData);
                 
                 const embed = successEmbed(
-                    "Crime Successful!",
-                    `You successfully committed ${crime.name} and earned **${amountEarned}** coins!`
+                    "🔪 פשע הצליח!",
+                    `בהצלחה ביצעת ${crime.name} והרווחת **${amountEarned}** מטבעות!`
                 );
                 
                 await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
@@ -109,14 +109,12 @@ export default {
                 await setEconomyData(client, guildId, userId, userData);
                 
                 const embed = errorEmbed(
-                    "Crime Failed!",
-                    `You were caught while attempting ${crime.name} and have been sent to jail! ` +
-                    `You were fined ${fine} coins and will be in jail for 2 hours.`
+                    "🔪 פשע כשל!",
+                    `נתפסת בזמן ניסיון ${crime.name} ונשלחת לכלא! ` +
+                    `קנסת ${fine} מטבעות והינך בכלא לשעתיים.`
                 );
                 
                 await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
             }
     }, { command: 'crime' })
 };
-
-
