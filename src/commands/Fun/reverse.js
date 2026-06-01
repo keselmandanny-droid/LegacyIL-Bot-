@@ -3,21 +3,19 @@ import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '
 import { logger } from '../../utils/logger.js';
 import { handleInteractionError, TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { sanitizeInput } from '../../utils/sanitization.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
     .setName("reverse")
-    .setDescription("Writes your text backwards.")
+    .setDescription("כותב את הטקסט שלך הפוך.")
     .addStringOption((option) =>
       option
         .setName("text")
-        .setDescription("The text to reverse.")
+        .setDescription("הטקסט להפיכה.")
         .setRequired(true)
         .setMaxLength(1000),
     ),
   category: 'Fun',
-
   async execute(interaction, config, client) {
     try {
       const originalText = interaction.options.getString("text");
@@ -30,16 +28,13 @@ export default {
           'Please provide some text to reverse!'
         );
       }
-
       
       const sanitizedText = sanitizeInput(originalText, 1000);
       const reversedText = sanitizedText.split("").reverse().join("");
-
       const embed = successEmbed(
         "Backwards Text",
         `Original: **${sanitizedText}**\nReversed: **${reversedText}**`,
       );
-
       await InteractionHelper.safeReply(interaction, { embeds: [embed] });
       logger.debug(`Reverse command executed by user ${interaction.user.id} in guild ${interaction.guildId}`);
     } catch (error) {
@@ -51,5 +46,3 @@ export default {
     }
   },
 };
-
-
