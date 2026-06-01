@@ -12,17 +12,17 @@ const SHOP_ITEMS = shopItems;
 export default {
     data: new SlashCommandBuilder()
         .setName('buy')
-        .setDescription('Buy an item from the shop')
+        .setDescription('🛒 קנה פריט מהחנות')
         .addStringOption(option =>
             option
                 .setName('item_id')
-                .setDescription('ID of the item to buy')
+                .setDescription('מזהה של הפריט לקנייה')
                 .setRequired(true)
         )
         .addIntegerOption(option =>
             option
                 .setName('quantity')
-                .setDescription('Quantity to buy (default: 1)')
+                .setDescription('כמות לקנייה (ברירת מחדל: 1)')
                 .setRequired(false)
                 .setMinValue(1)
                 .setMaxValue(10)
@@ -43,7 +43,7 @@ export default {
                 throw createError(
                     `Item ${itemId} not found`,
                     ErrorTypes.VALIDATION,
-                    `The item ID \`${itemId}\` does not exist in the shop.`,
+                    `מזהה הפריט \`${itemId}\` אינו קיים בחנות.`,
                     { itemId }
                 );
             }
@@ -52,7 +52,7 @@ export default {
                 throw createError(
                     "Invalid quantity",
                     ErrorTypes.VALIDATION,
-                    "You must purchase a quantity of 1 or more.",
+                    "עליך לרכוש כמות של 1 או יותר.",
                     { quantity }
                 );
             }
@@ -68,7 +68,7 @@ export default {
                 throw createError(
                     "Insufficient funds",
                     ErrorTypes.VALIDATION,
-                    `You need **$${totalCost.toLocaleString()}** to purchase ${quantity}x **${item.name}**, but you only have **$${userData.wallet.toLocaleString()}** in cash.`,
+                    `אתה צריך **$${totalCost.toLocaleString()}** כדי לרכוש ${quantity}x **${item.name}**, אבל יש לך רק **$${userData.wallet.toLocaleString()}** במזומנים.`,
                     { required: totalCost, current: userData.wallet, itemId, quantity }
                 );
             }
@@ -78,7 +78,7 @@ export default {
                     throw createError(
                         "Premium role not configured",
                         ErrorTypes.CONFIGURATION,
-                        "The **Premium Shop Role** has not been configured by a server administrator yet.",
+                        "**תפקיד חנות פרימיום** עדיין לא הוגדר על ידי מנהל שרת.",
                         { itemId }
                     );
                 }
@@ -86,7 +86,7 @@ export default {
                     throw createError(
                         "Role already owned",
                         ErrorTypes.VALIDATION,
-                        `You already have the **${item.name}** role.`,
+                        `כבר יש לך את תפקיד **${item.name}**.`,
                         { itemId, roleId: PREMIUM_ROLE_ID }
                     );
                 }
@@ -94,7 +94,7 @@ export default {
                     throw createError(
                         "Invalid quantity for role",
                         ErrorTypes.VALIDATION,
-                        `You can only purchase the **${item.name}** role once.`,
+                        `אתה יכול לרכוש את תפקיד **${item.name}** פעם אחת בלבד.`,
                         { itemId, quantity }
                     );
                 }
@@ -102,7 +102,7 @@ export default {
 
             userData.wallet -= totalCost;
 
-            let successDescription = `You successfully purchased ${quantity}x **${item.name}** for **$${totalCost.toLocaleString()}**!`;
+            let successDescription = `בהצלחה רכשת ${quantity}x **${item.name}** ב-**$${totalCost.toLocaleString()}**!`;
 
             if (item.type === "role" && itemId === "premium_role") {
                 const member = interaction.member;
@@ -113,7 +113,7 @@ export default {
                     throw createError(
                         "Role not found",
                         ErrorTypes.CONFIGURATION,
-                        "The configured premium role no longer exists in this guild.",
+                        "התפקיד שהוגדר אינו קיים יותר בגילד זה.",
                         { roleId: PREMIUM_ROLE_ID }
                     );
                 }
@@ -123,20 +123,20 @@ export default {
                         role,
                         `Purchased role: ${item.name}`,
                     );
-                    successDescription += `\n\n**👑 The role ${role.toString()} has been granted to you!**`;
+                    successDescription += `\n\n**👑 התפקיד ${role.toString()} הוענק לך!**`;
                 } catch (roleError) {
                     userData.wallet += totalCost;
                     await setEconomyData(client, guildId, userId, userData);
                     throw createError(
                         "Role assignment failed",
                         ErrorTypes.DISCORD_API,
-                        "Successfully deducted money, but failed to grant the role. Your cash has been refunded.",
+                        "כסף הופחת בהצלחה, אך נכשל בהענקת התפקיד. הכסף שלך הוחזר.",
                         { roleId: PREMIUM_ROLE_ID, originalError: roleError.message }
                     );
                 }
             } else if (item.type === "upgrade") {
                 userData.upgrades[itemId] = true;
-                successDescription += `\n\n**✨ Your upgrade is now active!**`;
+                successDescription += `\n\n**✨ השדרוג שלך פעיל כעת!**`;
             } else if (item.type === "consumable") {
                 userData.inventory[itemId] =
                     (userData.inventory[itemId] || 0) + quantity;
@@ -145,10 +145,10 @@ export default {
             await setEconomyData(client, guildId, userId, userData);
 
             const embed = successEmbed(
-                "💰 Purchase Successful",
+                "💰 קנייה בהצלחה",
                 successDescription,
             ).addFields({
-                name: "New Balance",
+                name: "יתרה חדשה",
                 value: `$${userData.wallet.toLocaleString()}`,
                 inline: true,
             });
@@ -156,8 +156,3 @@ export default {
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: [MessageFlags.Ephemeral] });
     }, { command: 'buy' })
 };
-
-
-
-
-
