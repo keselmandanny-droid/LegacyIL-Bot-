@@ -7,7 +7,7 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("eleaderboard")
-        .setDescription("View the server's top 10 richest users.")
+        .setDescription("📊 צפה בשרת של 10 משתמשים עשירים ביותר")
         .setDMPermission(false),
     
     
@@ -31,7 +31,7 @@ export default {
                 throw createError(
                     "No economy data found",
                     ErrorTypes.VALIDATION,
-                    "No economy data found for this server."
+                    "לא נמצאו נתוני כלכלה עבור שרת זה."
                 );
             }
 
@@ -76,19 +76,14 @@ export default {
 
             const description = leaderboardEntries.length > 0
                 ? leaderboardEntries.join("\n")
-                : "No economy data is available for this server yet.";
+                : "עדיין אין נתוני כלכלה זמינים עבור שרת זה.";
 
             const embed = createEmbed({
-                title: `Economy Leaderboard`,
+                title: `📊 לוח דירוג כלכלה`,
                 description,
-                footer: `Your Rank: ${userRank > 0 ? `#${userRank}` : "No ranking data available"}`,
+                footer: `דרגתך: ${userRank > 0 ? `#${userRank}` : "אין נתוני דירוג זמינים"}`,
             });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'eleaderboard' })
 };
-
-
-
-
-
