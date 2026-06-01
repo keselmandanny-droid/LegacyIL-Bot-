@@ -3,12 +3,12 @@ import { errorEmbed, successEmbed } from '../../utils/embeds.js';
 import { logger } from '../../utils/logger.js';
 import { TitanBotError, ErrorTypes, handleInteractionError } from '../../utils/errorHandler.js';
 import { saveGiveaway } from '../../utils/giveaways.js';
-import { 
-    parseDuration, 
-    validatePrize, 
+import {
+    parseDuration,
+    validatePrize,
     validateWinnerCount,
-    createGiveawayEmbed, 
-    createGiveawayButtons 
+    createGiveawayEmbed,
+    createGiveawayButtons
 } from '../../services/giveawayService.js';
 import { logEvent, EVENT_TYPES } from '../../services/loggingService.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
@@ -16,19 +16,17 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("gcreate")
-        .setDescription("Starts a new giveaway in a specified channel.")
+        .setDescription("יוצר הגרלה חדשה בערוץ שנבחר.")
         .addStringOption((option) =>
             option
                 .setName("duration")
-                .setDescription(
-                    "How long the giveaway should last (e.g., 1h, 30m, 5d).",
-                )
+                .setDescription("משך הזמן של ההגרלה (לדוגמה: 1h, 30m, 5d).")
                 .setRequired(true),
         )
         .addIntegerOption((option) =>
             option
                 .setName("winners")
-                .setDescription("The number of winners to pick.")
+                .setDescription("מספר הזוכים בהגרלה.")
                 .setMinValue(1)
                 .setMaxValue(10)
                 .setRequired(true),
@@ -36,13 +34,13 @@ export default {
         .addStringOption((option) =>
             option
                 .setName("prize")
-                .setDescription("The prize being given away.")
+                .setDescription("הפרס שיוגרל.")
                 .setRequired(true),
         )
         .addChannelOption((option) =>
             option
                 .setName("channel")
-                .setDescription("The channel to send the giveaway to (defaults to current channel).")
+                .setDescription("הערוץ שבו תישלח ההגרלה (ברירת מחדל: הערוץ הנוכחי).")
                 .addChannelTypes(ChannelType.GuildText)
                 .setRequired(false),
         )
@@ -50,52 +48,47 @@ export default {
 
     async execute(interaction) {
         try {
-            
+
             if (!interaction.inGuild()) {
                 throw new TitanBotError(
                     'Giveaway command used outside guild',
                     ErrorTypes.VALIDATION,
-                    'This command can only be used in a server.',
+                    'ניתן להשתמש בפקודה זו רק בתוך שרת.',
                     { userId: interaction.user.id }
                 );
             }
 
-            
             if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
                 throw new TitanBotError(
                     'User lacks ManageGuild permission',
                     ErrorTypes.PERMISSION,
-                    "You need the 'Manage Server' permission to start a giveaway.",
+                    "נדרשת הרשאת 'ניהול שרת' כדי ליצור הגרלה.",
                     { userId: interaction.user.id, guildId: interaction.guildId }
                 );
             }
 
             logger.info(`Giveaway creation started by ${interaction.user.tag} in guild ${interaction.guildId}`);
 
-            
             const durationString = interaction.options.getString("duration");
             const winnerCount = interaction.options.getInteger("winners");
             const prize = interaction.options.getString("prize");
             const targetChannel = interaction.options.getChannel("channel") || interaction.channel;
 
-            
             const durationMs = parseDuration(durationString);
             validateWinnerCount(winnerCount);
             const prizeName = validatePrize(prize);
 
-            
             if (!targetChannel.isTextBased()) {
                 throw new TitanBotError(
                     'Target channel is not text-based',
                     ErrorTypes.VALIDATION,
-                    'The channel must be a text channel.',
+                    'הערוץ חייב להיות ערוץ טקסט.',
                     { channelId: targetChannel.id, channelType: targetChannel.type }
                 );
             }
 
             const endTime = Date.now() + durationMs;
 
-            
             const initialGiveawayData = {
                 messageId: "placeholder",
                 channelId: targetChannel.id,
@@ -111,18 +104,15 @@ export default {
                 createdAt: new Date().toISOString()
             };
 
-            
             const embed = createGiveawayEmbed(initialGiveawayData, "active");
             const row = createGiveawayButtons(false);
-            
-            
+
             const giveawayMessage = await targetChannel.send({
-                content: "🎉 **NEW GIVEAWAY** 🎉",
+                content: "🎉 **הגרלה חדשה** 🎉",
                 embeds: [embed],
                 components: [row],
             });
 
-            
             initialGiveawayData.messageId = giveawayMessage.id;
             const saved = await saveGiveaway(
                 interaction.client,
@@ -134,34 +124,33 @@ export default {
                 logger.warn(`Failed to save giveaway to database: ${giveawayMessage.id}`);
             }
 
-            
             try {
                 await logEvent({
                     client: interaction.client,
                     guildId: interaction.guildId,
                     eventType: EVENT_TYPES.GIVEAWAY_CREATE,
                     data: {
-                        description: `Giveaway created: ${prizeName}`,
+                        description: `נוצרה הגרלה: ${prizeName}`,
                         channelId: targetChannel.id,
                         userId: interaction.user.id,
                         fields: [
                             {
-                                name: '🎁 Prize',
+                                name: '🎁 פרס',
                                 value: prizeName,
                                 inline: true
                             },
                             {
-                                name: '🏆 Winners',
+                                name: '🏆 זוכים',
                                 value: winnerCount.toString(),
                                 inline: true
                             },
                             {
-                                name: '⏰ Duration',
+                                name: '⏰ משך זמן',
                                 value: durationString,
                                 inline: true
                             },
                             {
-                                name: '📍 Channel',
+                                name: '📍 ערוץ',
                                 value: targetChannel.toString(),
                                 inline: true
                             }
@@ -174,12 +163,11 @@ export default {
 
             logger.info(`Giveaway created successfully: ${giveawayMessage.id} in ${targetChannel.name}`);
 
-            
             await InteractionHelper.safeReply(interaction, {
                 embeds: [
                     successEmbed(
-                        `Giveaway Started! 🎉`,
-                        `A new giveaway for **${prizeName}** has been started in ${targetChannel} and will end in **${durationString}**.`,
+                        `ההגרלה התחילה! 🎉`,
+                        `הגרלה חדשה על **${prizeName}** נוצרה ב-${targetChannel} ותסתיים בעוד **${durationString}**.`,
                     ),
                 ],
                 flags: MessageFlags.Ephemeral,
@@ -194,6 +182,3 @@ export default {
         }
     },
 };
-
-
-
