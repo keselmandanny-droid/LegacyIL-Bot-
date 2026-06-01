@@ -8,11 +8,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('balance')
-        .setDescription("Check your or someone else's balance")
+        .setDescription("💰 בדוק את היתרה שלך או של מישהו אחר")
         .addUserOption(option =>
             option
                 .setName('user')
-                .setDescription('User to check balance for')
+                .setDescription('משתמש לבדיקת יתרה')
                 .setRequired(false)
         ),
 
@@ -29,7 +29,7 @@ export default {
                 throw createError(
                     "Bot user queried for balance",
                     ErrorTypes.VALIDATION,
-                    "Bots don't have an economy balance."
+                    "לבוטים אין יתרה כלכלה."
                 );
             }
 
@@ -39,7 +39,7 @@ export default {
                 throw createError(
                     "Failed to load economy data",
                     ErrorTypes.DATABASE,
-                    "Failed to load economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה. אנא נסה שוב מאוחר יותר.",
                     { userId: targetUser.id, guildId }
                 );
             }
@@ -50,28 +50,28 @@ export default {
             const bank = typeof userData.bank === 'number' ? userData.bank : 0;
 
             const embed = createEmbed({
-                title: `💰 ${targetUser.username}'s Balance`,
-                description: `Here is the current financial status for ${targetUser.username}.`,
+                title: `💰 היתרה של ${targetUser.username}`,
+                description: `כאן המצב הכלכלי הנוכחי ל-${targetUser.username}.`,
             })
                 .addFields(
                     {
-                        name: "💵 Cash",
+                        name: "💵 מזומנים",
                         value: `$${wallet.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "🏦 Bank",
+                        name: "🏦 בנק",
                         value: `$${bank.toLocaleString()} / $${maxBank.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "💎 Total",
+                        name: "💎 סה״כ",
                         value: `$${(wallet + bank).toLocaleString()}`,
                         inline: true,
                     }
                 )
                 .setFooter({
-                    text: `Requested by ${interaction.user.tag}`,
+                    text: `בקשה מ-${interaction.user.tag}`,
                     iconURL: interaction.user.displayAvatarURL(),
                 });
 
@@ -80,7 +80,3 @@ export default {
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'balance' })
 };
-
-
-
-
