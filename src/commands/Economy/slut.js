@@ -8,36 +8,36 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 const SLUT_COOLDOWN = 45 * 60 * 1000;
 
 const SLUT_ACTIVITIES = [
-    { name: "Cam Stream", min: 120, max: 450, risk: 0.2 },
-    { name: "Private Dance Session", min: 220, max: 700, risk: 0.25 },
-    { name: "After-Hours Club Host", min: 320, max: 900, risk: 0.3 },
-    { name: "VIP Companion Booking", min: 550, max: 1400, risk: 0.35 },
-    { name: "Exclusive Livestream", min: 850, max: 2200, risk: 0.4 },
+    { name: "שידור מצלמה", min: 120, max: 450, risk: 0.2 },
+    { name: "הופעה פרטית", min: 220, max: 700, risk: 0.25 },
+    { name: "מנהל מועדון לאחר השעות", min: 320, max: 900, risk: 0.3 },
+    { name: "הזמנת מלווה VIP", min: 550, max: 1400, risk: 0.35 },
+    { name: "שידור בלעדי", min: 850, max: 2200, risk: 0.4 },
 ];
 
 const POSITIVE_OUTCOMES = [
-    "Your stream blew up and tips poured in.",
-    "A VIP booking paid far above average.",
-    "Your after-hours shift was packed and profitable.",
-    "Premium requests came through and your payout jumped.",
+    "השידור שלך התפוצץ והטיפים זרמו.",
+    "הזמנת VIP שילמה הרבה מעל הממוצע.",
+    "המשמרת שלך לאחר השעות הייתה מלאה ורווחית.",
+    "בקשות פרימיום עברו דרכך וההכנסה שלך קפצה.",
 ];
 
 const FINE_OUTCOMES = [
-    "Venue security issued a compliance fine.",
-    "A moderation strike triggered a platform fee.",
-    "You were flagged and had to pay a penalty.",
+    "אבטחת המקום הוציאה קנס על ציות.",
+    "שביתה בהנחיות הטריגרה בעמלה של הפלטפורמה.",
+    "נדגמת וצריך היה לשלם קנס.",
 ];
 
 const ROBBED_OUTCOMES = [
-    "A fake buyer chargeback wiped part of your earnings.",
-    "A scam booking cleaned out a chunk of your cash.",
-    "You got baited by a fraud account and lost money.",
+    "טעויות על ידי קונה מזויף מחקו חלק מההכנסה שלך.",
+    "הזמנה מזויפת נקיחה מחלק מהמזומנים שלך.",
+    "קיבלת פיתיון על ידי חשבון הונאה והפסדת כסף.",
 ];
 
 const LOSS_OUTCOMES = [
-    "The set flopped and you had to cover operating costs.",
-    "You burned budget on prep and made no return.",
-    "The shift went sideways and left you in the red.",
+    "המופע קרס והצטרכת לכסות עלויות תפעול.",
+    "שרפת תקציב על ההכנה ולא יצרת תשואה.",
+    "המשמרת הלכה לצד והשאירה אותך במינוס.",
 ];
 
 function randomInt(min, max) {
@@ -60,7 +60,7 @@ function resolveOutcome(activity, wallet) {
             type: 'payout',
             delta: amount,
             message: randomChoice(POSITIVE_OUTCOMES),
-            title: `💰 ${activity.name} - Payout`
+            title: `💰 ${activity.name} - הכנסה`
         };
     }
 
@@ -74,7 +74,7 @@ function resolveOutcome(activity, wallet) {
             type: 'fine',
             delta: -amount,
             message: randomChoice(FINE_OUTCOMES),
-            title: `🚨 ${activity.name} - Fined`
+            title: `🚨 ${activity.name} - קנס`
         };
     }
 
@@ -86,7 +86,7 @@ function resolveOutcome(activity, wallet) {
             type: 'robbed',
             delta: -amount,
             message: randomChoice(ROBBED_OUTCOMES),
-            title: `🕵️ ${activity.name} - Robbed`
+            title: `🕵️ ${activity.name} - נשדד`
         };
     }
 
@@ -97,14 +97,14 @@ function resolveOutcome(activity, wallet) {
         type: 'loss',
         delta: -amount,
         message: randomChoice(LOSS_OUTCOMES),
-        title: `❌ ${activity.name} - Loss`
+        title: `❌ ${activity.name} - הפסד`
     };
 }
 
 export default {
     data: new SlashCommandBuilder()
         .setName('slut')
-        .setDescription('Take a risky provocative job for random payout or loss'),
+        .setDescription('💸 קבל עבודה מסוכנת עם הכנסה או הפסד אקראי'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
@@ -122,7 +122,7 @@ export default {
                 throw createError(
                     "Failed to load economy data for slut command",
                     ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה שלך. אנא נסה שוב מאוחר יותר.",
                     { userId, guildId }
                 );
             }
@@ -134,7 +134,7 @@ export default {
                 throw createError(
                     "Slut cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `You need to wait before you can work again! Try again in **${Math.ceil(remainingTime / 60000)}** minutes.`,
+                    `אתה צריך להמתין לפני שתוכל לעבוד שוב! נסה שוב בעוד **${Math.ceil(remainingTime / 60000)}** דקות.`,
                     { timeRemaining: remainingTime, cooldownType: 'slut' }
                 );
             }
@@ -169,11 +169,11 @@ export default {
             const amountLabel = `${outcome.delta >= 0 ? '+' : '-'}$${Math.abs(outcome.delta).toLocaleString()}`;
             const summaryLines = [
                 `${outcome.message}`,
-                `💸 **Net Result:** ${amountLabel}`,
-                `💳 **Current Balance:** $${userData.wallet.toLocaleString()}`,
-                `📊 **Total Sessions:** ${userData.totalSluts}`,
-                `💵 **Total Earned:** $${(userData.totalSlutEarnings || 0).toLocaleString()}`,
-                `🧾 **Total Lost:** $${(userData.totalSlutLosses || 0).toLocaleString()}`
+                `💸 **תוצאה נטו:** ${amountLabel}`,
+                `💳 **יתרה נוכחית:** $${userData.wallet.toLocaleString()}`,
+                `📊 **סך הכול הופעות:** ${userData.totalSluts}`,
+                `💵 **סך הכול הרווח:** $${(userData.totalSlutEarnings || 0).toLocaleString()}`,
+                `🧾 **סך הכול הפסד:** $${(userData.totalSlutLosses || 0).toLocaleString()}`
             ];
 
             const embed = createEmbed({
@@ -186,8 +186,3 @@ export default {
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'slut' })
 };
-
-
-
-
-
