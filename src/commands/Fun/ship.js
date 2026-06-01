@@ -18,18 +18,18 @@ function stringToHash(str) {
 export default {
     data: new SlashCommandBuilder()
     .setName("ship")
-    .setDescription("Calculate the compatibility score between two people.")
+    .setDescription("💕 חשב את ציון התאימות בין שני אנשים")
     .addStringOption((option) =>
       option
         .setName("name1")
-        .setDescription("The first name or user.")
+        .setDescription("השם או המשתמש הראשון")
         .setRequired(true)
         .setMaxLength(100),
     )
     .addStringOption((option) =>
       option
         .setName("name2")
-        .setDescription("The second name or user.")
+        .setDescription("השם או המשתמש השני")
         .setRequired(true)
         .setMaxLength(100),
     ),
@@ -47,7 +47,7 @@ export default {
         throw new TitanBotError(
           'Empty names provided to ship command',
           ErrorTypes.USER_INPUT,
-          'Please provide valid names for both people!'
+          'אנא ספק שמות תקפים לשני האנשים!'
         );
       }
 
@@ -58,8 +58,8 @@ export default {
       
       if (name1.toLowerCase() === name2.toLowerCase()) {
         const embed = warningEmbed(
-          "💖 Ship Score",
-          `**${name1}** can't be shipped with themselves! Please choose two different people.`
+          "💖 ציון Ship",
+          `**${name1}** לא יכול להיות ship עם עצמו! אנא בחר שני אנשים שונים.`
         );
         return await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
       }
@@ -70,17 +70,17 @@ export default {
 
       let description;
       if (score === 100) {
-        description = "Soulmates! It's destiny, they belong together!";
+        description = "בני נשמה! זה גורל, הם שייכים אחד לשני!";
       } else if (score >= 80) {
-        description = "A perfect match! Get the wedding bells ready!";
+        description = "התאמה מושלמת! כנסו להכנות לפעמונים!";
       } else if (score >= 60) {
-        description = "Solid chemistry. Definitely worth exploring!";
+        description = "כימיה מוצקה. בהחלט שווה לעיין!";
       } else if (score >= 40) {
-        description = "Just friends status. Maybe with time?";
+        description = "מצב חברים. אולי עם הזמן?";
       } else if (score >= 20) {
-        description = "It's a struggle. They might need space.";
+        description = "זה מאבק. הם אולי צריכים מקום.";
       } else {
-        description = "Zero compatibility. Run for the hills!";
+        description = "ללא תאימות כלל. בורחו!";
       }
 
       const progressBar =
@@ -88,8 +88,8 @@ export default {
         "░".repeat(10 - Math.floor(score / 10));
 
       const embed = successEmbed(
-        `💖 Ship Score: ${name1} vs ${name2}`,
-        `Compatibility: **${score}%**\n\n\`${progressBar}\`\n\n*${description}*`,
+        `💖 ציון Ship: ${name1} vs ${name2}`,
+        `תאימות: **${score}%**\n\n\`${progressBar}\`\n\n*${description}*`,
       );
 
       await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
@@ -103,7 +103,3 @@ export default {
     }
   },
 };
-
-
-
-
