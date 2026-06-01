@@ -9,13 +9,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("gdelete")
-        .setDescription(
-            "Deletes a giveaway message and removes it from the database.",
-        )
+        .setDescription("מוחק הודעת הגרלה ומסיר אותה ממסד הנתונים.")
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the giveaway to delete.")
+                .setDescription("מזהה ההודעה של ההגרלה למחיקה.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -203,5 +201,3 @@ export default {
         }
     },
 };
-
-
