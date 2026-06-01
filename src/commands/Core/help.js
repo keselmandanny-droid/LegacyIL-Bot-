@@ -1,4 +1,4 @@
-﻿import {
+import {
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
@@ -55,8 +55,8 @@ export async function createInitialHelpMenu(client) {
 
     const options = [
         {
-            label: "📋 All Commands",
-            description: "View all available commands with pagination",
+            label: "📋 כל הפקודות",
+            description: "צפה בכל הפקודות הזמינות עם עמודים",
             value: ALL_COMMANDS_ID,
         },
         ...categoryDirs.map((category) => {
@@ -66,120 +66,120 @@ export async function createInitialHelpMenu(client) {
             const icon = CATEGORY_ICONS[categoryName] || "🔍";
             return {
                 label: `${icon} ${categoryName}`,
-                description: `View commands in the ${categoryName} category`,
+                description: `צפה בפקודות בקטגוריה ${categoryName}`,
                 value: category,
             };
         }),
     ];
 
-    const botName = client?.user?.username || "Bot";
+    const botName = client?.user?.username || "בוט";
     const embed = createEmbed({ 
-        title: `🤖 ${botName} Help Center`,
-        description: "Your all-in-one Discord companion for moderation, economy, fun, and server management.",
+        title: `🤖 מרכז עזרה ${botName}`,
+        description: "עוזר הכל-באחד שלך ב-Discord למיתון, כלכלה, כיף וניהול שרת.",
         color: 'primary'
     });
 
     embed.addFields(
         {
-            name: "🛡️ **Moderation**",
-            value: "Server moderation, user management, and enforcement tools",
+            name: "🛡️ **ניתוח**",
+            value: "ניתוח שרת, ניהול משתמשים וכלים אכיפה",
             inline: true
         },
         {
-            name: "💰 **Economy**",
-            value: "Currency system, shops, and virtual economy",
+            name: "💰 **כלכלה**",
+            value: "מערכת מטבע, חנויות וכלכלה וירטואלית",
             inline: true
         },
         {
-            name: "🎮 **Fun**",
-            value: "Games, entertainment, and interactive commands",
+            name: "🎮 **כיף**",
+            value: "משחקים, בידור ופקודות אינטראקטיביות",
             inline: true
         },
         {
-            name: "📊 **Leveling**",
-            value: "User levels, XP system, and progression tracking",
+            name: "📊 **דירוג**",
+            value: "רמות משתמש, מערכת XP ומעקב התקדמות",
             inline: true
         },
         {
-            name: "🎫 **Tickets**",
-            value: "Support ticket system for server management",
+            name: "🎫 **כרטיסים**",
+            value: "מערכת כרטיסי תמיכה לניהול שרת",
             inline: true
         },
         {
-            name: "🎉 **Giveaways**",
-            value: "Automated giveaway management and distribution",
+            name: "🎉 **הגרלות**",
+            value: "ניהול הגרלות אוטומטי והפצה",
             inline: true
         },
         {
-            name: "👋 **Welcome**",
-            value: "Member welcome messages and onboarding",
+            name: "👋 **ברכה בכניסה**",
+            value: "הודעות ברכה לחברים ואונבורדינג",
             inline: true
         },
         {
-            name: "🎂 **Birthdays**",
-            value: "Birthday tracking and celebration features",
+            name: "🎂 **יומולדות**",
+            value: "מעקב יומולדות וכי חגיגיות",
             inline: true
         },
         {
-            name: "👥 **Community**",
-            value: "Community tools, applications, and member engagement",
+            name: "👥 **קהילה**",
+            value: "כלים קהילתיים, מועמדויות והשתתפות חברים",
             inline: true
         },
         {
-            name: "⚙️ **Config**",
-            value: "Server and bot configuration management commands",
+            name: "⚙️ **הגדרות**",
+            value: "פקודות ניהול הגדרות שרת ובוט",
             inline: true
         },
         {
-            name: "🔢 **Counter**",
-            value: "Live counter channel setup and counter controls",
+            name: "🔢 **מונה**",
+            value: "הגדרת ערוץ מונה חי ובקרות מונה",
             inline: true
         },
         {
-            name: "🎙️ **Join to Create**",
-            value: "Dynamic voice channel creation and management",
+            name: "🎙️ **הצטרפות כדי ליצור**",
+            value: "יצירה ודינמית של ערוצי קול וניהול",
             inline: true
         },
         {
-            name: "🎭 **Reaction Roles**",
-            value: "Self-assignable roles using reaction-role systems",
+            name: "🎭 **תפקידי Reaction**",
+            value: "תפקידים בני הקצאה עצמית באמצעות מערכות reaction-role",
             inline: true
         },
         {
-            name: "✅ **Verification**",
-            value: "Member verification workflows and access gating",
+            name: "✅ **אימות**",
+            value: "זרימות אימות חברים וגישה מוגנת",
             inline: true
         },
         {
-            name: "🔧 **Utilities**",
-            value: "Useful tools and server utilities",
+            name: "🔧 **כלים שימושיים**",
+            value: "כלים שימושיים וכלים לשרת",
             inline: true
         }
     );
 
     embed.setFooter({ 
-        text: "Made with ❤️" 
+        text: "עשוי בעם ❤️" 
     });
     embed.setTimestamp();
 
     const bugReportButton = new ButtonBuilder()
         .setCustomId(BUG_REPORT_BUTTON_ID)
-        .setLabel("Report Bug")
+        .setLabel("דווח על באג")
         .setStyle(ButtonStyle.Danger);
 
     const supportButton = new ButtonBuilder()
-        .setLabel("Support Server")
+        .setLabel("שרת תמיכה")
         .setURL("https://discord.gg/QnWNz2dKCE")
         .setStyle(ButtonStyle.Link);
 
     const touchpointButton = new ButtonBuilder()
-        .setLabel("Learn from Touchpoint")
+        .setLabel("למד מ-Touchpoint")
         .setURL("https://www.youtube.com/@TouchDisc")
         .setStyle(ButtonStyle.Link);
 
     const selectRow = createSelectMenu(
         CATEGORY_SELECT_ID,
-        "Select to view the commands",
+        "בחר כדי להצגת הפקודות",
         options,
     );
 
@@ -198,7 +198,7 @@ export async function createInitialHelpMenu(client) {
 export default {
     data: new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Displays the help menu with all available commands"),
+        .setDescription("🤖 הצג את תפריט העזרה עם כל הפקודות הזמינות"),
 
     async execute(interaction, guildConfig, client) {
         
@@ -215,8 +215,8 @@ export default {
         setTimeout(async () => {
             try {
                 const closedEmbed = createEmbed({
-                    title: "Help menu closed",
-                    description: "Help menu has been closed, use /help again.",
+                    title: "תפריט עזרה סגור",
+                    description: "תפריט העזרה סגור, השתמש ב-/help שוב.",
                     color: "secondary",
                 });
 
@@ -230,5 +230,3 @@ export default {
         }, HELP_MENU_TIMEOUT_MS);
     },
 };
-
-
