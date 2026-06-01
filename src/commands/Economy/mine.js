@@ -12,17 +12,17 @@ const PICKAXE_MULTIPLIER = 1.2;
 const DIAMOND_PICKAXE_MULTIPLIER = 2.0;
 
 const MINE_LOCATIONS = [
-    "abandoned gold mine",
-    "dark, damp cave",
-    "backyard rock quarry",
-    "volcanic obsidian vent",
-    "deep-sea mineral trench",
+    "מכרה זהב נטושה",
+    "מערה אפלה ורטובה",
+    "מחצבת סלעים בחצר",
+    "פתח אובסידיאן וולקני",
+    "תהום מיניראלים עמוקה בים",
 ];
 
 export default {
     data: new SlashCommandBuilder()
         .setName('mine')
-        .setDescription('Go mining to earn money'),
+        .setDescription('⛏️ לך לכרייה כדי להרוויח כסף'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
@@ -47,7 +47,7 @@ export default {
                 throw createError(
                     "Mining cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `Your pickaxe is cooling down. Wait for **${hours}h ${minutes}m** before mining again.`,
+                    `את הפיקל שלך מתקרר. חכה **${hours}h ${minutes}m** לפני כרייה שוב.`,
                     { remaining, cooldownType: 'mine' }
                 );
             }
@@ -62,10 +62,10 @@ export default {
 
             if (hasDiamondPickaxe > 0) {
                 finalEarned = Math.floor(baseEarned * DIAMOND_PICKAXE_MULTIPLIER);
-                multiplierMessage = `\n💎 **Diamond Pickaxe Bonus: +100%**`;
+                multiplierMessage = `\n💎 **בונוס לפיקל יהלום: +100%**`;
             } else if (hasPickaxe > 0) {
                 finalEarned = Math.floor(baseEarned * PICKAXE_MULTIPLIER);
-                multiplierMessage = `\n⛏️ **Pickaxe Bonus: +20%**`;
+                multiplierMessage = `\n⛏️ **בונוס לפיקל: +20%**`;
             }
 
             const location =
@@ -79,20 +79,16 @@ userData.lastMine = now;
             await setEconomyData(client, guildId, userId, userData);
 
             const embed = successEmbed(
-                "💰 Mining Expedition Successful!",
-                `You explored a **${location}** and managed to find minerals worth **$${finalEarned.toLocaleString()}**!${multiplierMessage}`,
+                "💰 משלחת כרייה הצליחה!",
+                `חקרת **${location}** והצלחת למצוא מינרלים בשווי **$${finalEarned.toLocaleString()}**!${multiplierMessage}`,
             )
                 .addFields({
-                    name: "💵 New Cash Balance",
+                    name: "💵 יתרת מזומנים חדשה",
                     value: `$${userData.wallet.toLocaleString()}`,
                     inline: true,
                 })
-                .setFooter({ text: `Next mine available in 1 hour.` });
+                .setFooter({ text: `כרייה הבאה זמינה בעוד שעה.` });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'mine' })
 };
-
-
-
-
