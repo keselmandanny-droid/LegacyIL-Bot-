@@ -8,11 +8,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('withdraw')
-        .setDescription('Withdraw money from your bank to your wallet')
+        .setDescription('💸 משוך כסף מהבנק שלך לארנקך')
         .addIntegerOption(option =>
             option
                 .setName('amount')
-                .setDescription('Amount to withdraw')
+                .setDescription('כמות למשיכה')
                 .setRequired(true)
                 .setMinValue(1)
         ),
@@ -30,7 +30,7 @@ export default {
                 throw createError(
                     "Failed to load economy data",
                     ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה שלך. אנא נסה שוב מאוחר יותר.",
                     { userId, guildId }
                 );
             }
@@ -41,7 +41,7 @@ export default {
                 throw createError(
                     "Invalid withdrawal amount",
                     ErrorTypes.VALIDATION,
-                    "You must withdraw a positive amount.",
+                    "עליך למשוך סכום חיובי.",
                     { amount: withdrawAmount, userId }
                 );
             }
@@ -54,7 +54,7 @@ export default {
                 throw createError(
                     "Empty bank account",
                     ErrorTypes.VALIDATION,
-                    "Your bank account is empty.",
+                    "חשבון הבנק שלך ריק.",
                     { userId, bankBalance: userData.bank }
                 );
             }
@@ -65,17 +65,17 @@ export default {
             await setEconomyData(client, guildId, userId, userData);
 
             const embed = MessageTemplates.SUCCESS.DATA_UPDATED(
-                "withdrawal",
-                `You successfully withdrew **$${withdrawAmount.toLocaleString()}** from your bank.`
+                "משיכה",
+                `ביצעת בהצלחה משיכה של **$${withdrawAmount.toLocaleString()}** מהבנק שלך.`
             )
                 .addFields(
                     {
-                        name: "💵 New Cash Balance",
+                        name: "💵 יתרת מזומנים חדשה",
                         value: `$${userData.wallet.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "🏦 New Bank Balance",
+                        name: "🏦 יתרת בנק חדשה",
                         value: `$${userData.bank.toLocaleString()}`,
                         inline: true,
                     },
