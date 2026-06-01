@@ -10,25 +10,25 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { logger } from '../../utils/logger.js';
 
 function pill(enabled) {
-    return enabled ? '✅ On' : '❌ Off';
+    return enabled ? '✅ פעיל' : '❌ כבוי';
 }
 
 async function formatChannelMention(guild, id) {
-    if (!id) return '`Not configured`';
+    if (!id) return '`לא הוגדר`';
     const channel = guild.channels.cache.get(id) ?? await guild.channels.fetch(id).catch(() => null);
-    return channel ? channel.toString() : `⚠️ Missing (${id})`;
+    return channel ? channel.toString() : `⚠️ חסר (${id})`;
 }
 
 function formatRoleMention(guild, id) {
-    if (!id) return '`Not configured`';
+    if (!id) return '`לא הוגדר`';
     const role = guild.roles.cache.get(id);
-    return role ? role.toString() : `⚠️ Missing (${id})`;
+    return role ? role.toString() : `⚠️ חסר (${id})`;
 }
 
 export default {
     data: new SlashCommandBuilder()
         .setName('overview')
-        .setDescription('Read-only snapshot of all server system statuses.')
+        .setDescription('📋 תמונת מצב לקריאה בלבד של כל סטטוסי המערכות של השרת')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false),
 
@@ -61,54 +61,54 @@ export default {
                 ]);
 
             const embed = new EmbedBuilder()
-                .setTitle('🖥️ System Overview')
-                .setDescription(`Read-only snapshot for **${interaction.guild.name}**. Use the relevant command's dashboard to make changes.`)
+                .setTitle('🖥️ תמונת מצב המערכת')
+                .setDescription(`תמונת מצב לקריאה בלבד עבור **${interaction.guild.name}**. השתמש בלוח הבקרה של הפקודה הרלוונטית כדי לבצע שינויים.`)
                 .setColor(getColor('primary'))
                 .addFields(
                     // ── Core systems ──
                     {
-                        name: '⚙️ Core Systems',
+                        name: '⚙️ מערכות ליבה',
                         value: [
-                            `🧾 **Audit Logging** — ${pill(Boolean(loggingStatus.enabled))}`,
-                            `📈 **Leveling** — ${pill(Boolean(levelingConfig?.enabled))}`,
-                            `👋 **Welcome** — ${pill(Boolean(welcomeConfig?.enabled))}`,
-                            `👋 **Goodbye** — ${pill(Boolean(welcomeConfig?.goodbyeEnabled))}`,
-                            `🎂 **Birthdays** — ${pill(Boolean(guildConfig.birthdayChannelId))}`,
-                            `📋 **Applications** — ${pill(Boolean(applicationConfig?.enabled))}`,
-                            `✅ **Verification** — ${pill(verificationEnabled)}`,
-                            `🤖 **Auto-Verify** — ${pill(autoVerifyEnabled)}`,
-                            `🎧 **Join to Create** — ${pill(Boolean(joinToCreateConfig?.enabled))}`,
-                            `🛡️ **Auto Role** — ${autoRoleId ? `✅ ${formatRoleMention(interaction.guild, autoRoleId)}` : '❌ Off'}`,
+                            `🧾 **ביומן ביקורת** — ${pill(Boolean(loggingStatus.enabled))}`,
+                            `📈 **דירוג** — ${pill(Boolean(levelingConfig?.enabled))}`,
+                            `👋 **ברכה בכניסה** — ${pill(Boolean(welcomeConfig?.enabled))}`,
+                            `👋 **פרידה בעזיבה** — ${pill(Boolean(welcomeConfig?.goodbyeEnabled))}`,
+                            `🎂 **יומולדות** — ${pill(Boolean(guildConfig.birthdayChannelId))}`,
+                            `📋 **מועמדויות** — ${pill(Boolean(applicationConfig?.enabled))}`,
+                            `✅ **אימות** — ${pill(verificationEnabled)}`,
+                            `🤖 **אימות אוטומטי** — ${pill(autoVerifyEnabled)}`,
+                            `🎧 **הצטרפות כדי ליצור** — ${pill(Boolean(joinToCreateConfig?.enabled))}`,
+                            `🛡️ **תפקיד אוטומטי** — ${autoRoleId ? `✅ ${formatRoleMention(interaction.guild, autoRoleId)}` : '❌ כבוי'}`,
                         ].join('\n'),
                         inline: false,
                     },
                     // ── Channels ──
                     {
-                        name: '📡 Configured Channels',
+                        name: '📡 ערוצים שהוגדרו',
                         value: [
-                            `**Audit Log:** ${auditChannel}`,
-                            `**Ticket Lifecycle:** ${lifecycleChannel}`,
-                            `**Ticket Transcripts:** ${transcriptChannel}`,
-                            `**Reports:** ${reportChannel}`,
-                            `**Birthdays:** ${birthdayChannel}`,
+                            `**ביומן ביקורת:** ${auditChannel}`,
+                            `**מחזור כרטיסים:** ${lifecycleChannel}`,
+                            `**עלויות כרטיסים:** ${transcriptChannel}`,
+                            `**דיווחים:** ${reportChannel}`,
+                            `**יומולדות:** ${birthdayChannel}`,
                         ].join('\n'),
                         inline: false,
                     },
                     // ── Refresh stamp ──
                     {
-                        name: '🕒 Snapshot Taken',
+                        name: '🕒 תמונת מצב צולמה',
                         value: `<t:${Math.floor(Date.now() / 1000)}:R>`,
                         inline: true,
                     },
                 )
-                .setFooter({ text: 'Read-only — run /logging dashboard to manage audit settings' })
+                .setFooter({ text: 'לקריאה בלבד — הרץ /logging dashboard כדי לנהל את הגדרות הביקורת' })
                 .setTimestamp();
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
         } catch (error) {
             logger.error('overview command error:', error);
             await InteractionHelper.safeEditReply(interaction, {
-                embeds: [errorEmbed('Overview Error', 'Failed to load the system overview.')],
+                embeds: [errorEmbed('שגיאה בתמונת מצב', 'נכשל בטעינת תמונת המצב של המערכת.')],
             });
         }
     },
