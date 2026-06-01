@@ -8,11 +8,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('deposit')
-        .setDescription('Deposit money from your wallet into your bank')
+        .setDescription('💳 הפקד כסף מהארנק שלך לבנק שלך')
         .addStringOption(option =>
             option
                 .setName('amount')
-                .setDescription('Amount to deposit (number or "all")')
+                .setDescription('סכום להפקדה (מספר או "all")')
                 .setRequired(true)
         ),
 
@@ -30,7 +30,7 @@ export default {
                 throw createError(
                     "Failed to load economy data",
                     ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה שלך. אנא נסה שוב מאוחר יותר.",
                     { userId, guildId }
                 );
             }
@@ -47,7 +47,7 @@ export default {
                     throw createError(
                         "Invalid deposit amount",
                         ErrorTypes.VALIDATION,
-                        `Please enter a valid number or 'all'. You entered: \`${amountInput}\``,
+                        `אנא הכנס מספר חוקי או 'all'. הכנסת: \`${amountInput}\``,
                         { amountInput, userId }
                     );
                 }
@@ -57,7 +57,7 @@ export default {
                 throw createError(
                     "Zero deposit amount",
                     ErrorTypes.VALIDATION,
-                    "You have no cash to deposit.",
+                    "אין לך מזומנים להפקדה.",
                     { userId, walletBalance: userData.wallet }
                 );
             }
@@ -67,8 +67,8 @@ export default {
                 await interaction.followUp({
                     embeds: [
                         MessageTemplates.ERRORS.INVALID_INPUT(
-                            "deposit amount",
-                            `You tried to deposit more than you have. Depositing your remaining cash: **$${depositAmount.toLocaleString()}**`
+                            "סכום הפקדה",
+                            `ניסיון להפקיד יותר ממה שיש לך. הפקדת את המזומנים הנותרים שלך: **$${depositAmount.toLocaleString()}**`
                         )
                     ],
                     flags: ["Ephemeral"],
@@ -81,7 +81,7 @@ export default {
                 throw createError(
                     "Bank is full",
                     ErrorTypes.VALIDATION,
-                    `Your bank is currently full (Max Capacity: $${maxBank.toLocaleString()}). Purchase a **Bank Upgrade** to increase your limit.`,
+                    `הבנק שלך מלא כרגע (כושר מקסימלי: $${maxBank.toLocaleString()}). קנה **שדרוג בנק** כדי להגביל את המגבלה שלך.`,
                     { maxBank, currentBank: userData.bank, userId }
                 );
             }
@@ -94,8 +94,8 @@ export default {
                     await interaction.followUp({
                         embeds: [
                             MessageTemplates.ERRORS.INVALID_INPUT(
-                                "deposit amount",
-                                `You only had space for **$${depositAmount.toLocaleString()}** in your bank account (Max: $${maxBank.toLocaleString()}). The rest remains in your cash.`
+                                "סכום הפקדה",
+                                `היה לך רק מקום ל-**$${depositAmount.toLocaleString()}** בחשבון הבנק שלך (מקסימום: $${maxBank.toLocaleString()}). השאר נשאר במזומנים שלך.`
                             )
                         ],
                         flags: ["Ephemeral"],
@@ -107,7 +107,7 @@ export default {
                 throw createError(
                     "No space or cash for deposit",
                     ErrorTypes.VALIDATION,
-                    "The amount you tried to deposit was either 0 or exceeded your bank capacity after checking your cash balance.",
+                    "הסכום שניסיון להפקיד היה 0 או חרג מכושר הבנק שלך לאחר בדיקת יתרת המזומנים שלך.",
                     { depositAmount, availableSpace, walletBalance: userData.wallet }
                 );
             }
@@ -118,17 +118,17 @@ export default {
             await setEconomyData(client, guildId, userId, userData);
 
             const embed = MessageTemplates.SUCCESS.DATA_UPDATED(
-                "deposit",
-                `You successfully deposited **$${depositAmount.toLocaleString()}** into your bank.`
+                "הפקדה",
+                `בהצלחה הפקדת **$${depositAmount.toLocaleString()}** לבנק שלך.`
             )
                 .addFields(
                     {
-                        name: "💵 New Cash Balance",
+                        name: "💵 יתרת מזומנים חדשה",
                         value: `$${userData.wallet.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "🏦 New Bank Balance",
+                        name: "🏦 יתרת בנק חדשה",
                         value: `$${userData.bank.toLocaleString()} / $${maxBank.toLocaleString()}`,
                         inline: true,
                     },
@@ -137,8 +137,3 @@ export default {
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'deposit' })
 };
-
-
-
-
-
