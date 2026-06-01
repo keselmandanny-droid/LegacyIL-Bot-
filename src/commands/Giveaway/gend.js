@@ -14,13 +14,11 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("gend")
-        .setDescription(
-            "Ends an active giveaway immediately and picks the winner(s).",
-        )
+        .setDescription("מסיים הגרלה פעילה מיידית ובוחר את הזוכה/ים.")
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("The message ID of the giveaway to end.")
+                .setDescription("מזהה ההודעה של ההגרלה לסיום.")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -207,6 +205,3 @@ export default {
         }
     },
 };
-
-
-
