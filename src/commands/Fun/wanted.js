@@ -8,17 +8,17 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
     .setName("wanted")
-    .setDescription("Create a WANTED poster for a user.")
+    .setDescription("💥 צור כרזת WANTED למשתמש")
     .addUserOption((option) =>
       option
         .setName("user")
-        .setDescription("The user who is wanted.")
+        .setDescription("המשתמש שנחפש")
         .setRequired(true),
     )
     .addStringOption((option) =>
       option
         .setName("crime")
-        .setDescription("The crime they committed.")
+        .setDescription("הפשע שביצעו")
         .setRequired(false)
         .setMaxLength(100),
     ),
@@ -32,7 +32,7 @@ export default {
       const crimeRaw = interaction.options.getString("crime");
 
       
-      let crime = "Too adorable for this server.";
+      let crime = "יפה מדי עבור השרת הזה";
       if (crimeRaw) {
         const sanitizedCrime = sanitizeInput(crimeRaw.trim(), 100);
         if (sanitizedCrime.length > 0) {
@@ -45,23 +45,23 @@ export default {
         throw new TitanBotError(
           'Target user not found for wanted command',
           ErrorTypes.USER_INPUT,
-          'Could not find the specified user.'
+          'לא הצלחתי למצוא את המשתמש שצוין'
         );
       }
 
       const bountyAmount = Math.floor(
         Math.random() * (100000000 - 1000000) + 1000000,
       );
-      const bounty = `$${bountyAmount.toLocaleString()} USD`;
+      const bounty = `$${bountyAmount.toLocaleString()} שקלים`;
 
       const embed = createEmbed({
         color: 'primary',
-        title: '💥 BIG BOUNTY: WANTED! 💥',
-        description: `**CRIMINAL:** ${targetUser.tag}\n**CRIME:** ${crime}`,
+        title: '💥 פרס גדול: מחפושים! 💥',
+        description: `**פושע:** ${targetUser.tag}\n**פשע:** ${crime}`,
         fields: [
           {
-            name: "DEAD OR ALIVE",
-            value: `**BOUNTY:** ${bounty}`,
+            name: "חי או מת",
+            value: `**פרס:** ${bounty}`,
             inline: false,
           },
         ],
@@ -69,7 +69,7 @@ export default {
           url: targetUser.displayAvatarURL({ size: 1024, extension: 'png' }),
         },
         footer: {
-          text: `Last seen in ${interaction.guild.name}`,
+          text: `נראה לאחרונה ב-${interaction.guild.name}`,
         },
       });
 
@@ -84,6 +84,3 @@ export default {
     }
   },
 };
-
-
-
