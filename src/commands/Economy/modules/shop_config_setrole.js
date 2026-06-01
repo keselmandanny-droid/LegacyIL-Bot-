@@ -8,7 +8,7 @@ export default {
     async execute(interaction, config, client) {
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
             return InteractionHelper.safeReply(interaction, {
-                embeds: [errorEmbed('Permission Denied', 'You need **Manage Server** permissions to set the premium role.')],
+                embeds: [errorEmbed('הרשאה נדחתה', 'אתה צריך הרשאות **ניהול שרת** כדי להגדיר את תפקיד הפרימיום.')],
                 ephemeral: true,
             });
         }
@@ -22,13 +22,13 @@ export default {
             await setGuildConfig(client, guildId, currentConfig);
 
             return InteractionHelper.safeReply(interaction, {
-                embeds: [successEmbed('✅ Premium Role Set', `The **Premium Shop Role** has been set to ${role.toString()}. Members who purchase the Premium Role item will be granted this role.`)],
+                embeds: [successEmbed('✅ תפקיד פרימיום הוגדר', `**תפקיד חנות פרימיום** הוגדר ל-${role.toString()}. חברים שיקנו את פריט תפקיד פרימיום יקבלו את התפקיד הזה.`)],
                 ephemeral: true,
             });
         } catch (error) {
             logger.error('shop_config_setrole error:', error);
             return InteractionHelper.safeReply(interaction, {
-                embeds: [errorEmbed('System Error', 'Could not save the guild configuration.')],
+                embeds: [errorEmbed('שגיאת מערכת', 'לא היה ניתן לשמור את הגדרות הגילד.')],
                 ephemeral: true,
             });
         }
