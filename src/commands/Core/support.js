@@ -7,12 +7,12 @@ const SUPPORT_SERVER_URL = "https://discord.gg/QnWNz2dKCE";
 export default {
     data: new SlashCommandBuilder()
     .setName("support")
-    .setDescription("Get link to the support server"),
+    .setDescription("🚑 קבל קישור לשרת התמיכה"),
 
   async execute(interaction) {
     try {
       const supportButton = new ButtonBuilder()
-        .setLabel("Join Support Server")
+        .setLabel("הצטרף לשרת התמיכה")
         .setStyle(ButtonStyle.Link)
         .setURL(SUPPORT_SERVER_URL);
 
@@ -20,7 +20,7 @@ export default {
 
       await InteractionHelper.safeReply(interaction, {
         embeds: [
-          createEmbed({ title: "🚑 Need Help?", description: "Join our official support server for assistance, report bugs, or suggest features. If you are customizing this bot, remember to change the link in the code!" }),
+          createEmbed({ title: "🚑 צריך עזרה?", description: "הצטרף לשרת התמיכה הרשמי שלנו כדי לקבל סיוע, לדווח על באגים או להציע תכונות. אם אתה מתאים אישית את הבוט הזה, זכור לשנות את הקישור בקוד!" }),
         ],
         components: [actionRow],
         flags: MessageFlags.Ephemeral,
@@ -30,7 +30,7 @@ export default {
       
       try {
         return await InteractionHelper.safeReply(interaction, {
-          embeds: [createEmbed({ title: 'System Error', description: 'Could not display support information.', color: 'error' })],
+          embeds: [createEmbed({ title: 'שגיאת מערכת', description: 'לא ניתן היה להציג את מידע התמיכה.', color: 'error' })],
           flags: MessageFlags.Ephemeral,
         });
       } catch (replyError) {
@@ -39,8 +39,3 @@ export default {
     }
   },
 };
-
-
-
-
-
