@@ -10,17 +10,17 @@ import EconomyService from '../../services/economyService.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('pay')
-        .setDescription('Pay another user some of your cash')
+        .setDescription('💸 שלם למשתמש אחר כמה מהכסף שלך')
         .addUserOption(option =>
             option
                 .setName('user')
-                .setDescription('User to pay')
+                .setDescription('משתמש לתשלום')
                 .setRequired(true)
         )
         .addIntegerOption(option =>
             option
                 .setName('amount')
-                .setDescription('Amount to pay')
+                .setDescription('סכום לתשלום')
                 .setRequired(true)
                 .setMinValue(1)
         ),
@@ -45,7 +45,7 @@ export default {
                 throw createError(
                     "Cannot pay bot",
                     ErrorTypes.VALIDATION,
-                    "You cannot pay a bot.",
+                    "אתה לא יכול לשלם לבוט.",
                     { receiverId: receiver.id, isBot: true }
                 );
             }
@@ -54,7 +54,7 @@ export default {
                 throw createError(
                     "Cannot pay self",
                     ErrorTypes.VALIDATION,
-                    "You cannot pay yourself.",
+                    "אתה לא יכול לשלם לעצמך.",
                     { senderId, receiverId: receiver.id }
                 );
             }
@@ -63,7 +63,7 @@ export default {
                 throw createError(
                     "Invalid payment amount",
                     ErrorTypes.VALIDATION,
-                    "Amount must be greater than zero.",
+                    "הסכום חייב להיות גדול מאפס.",
                     { amount, senderId }
                 );
             }
@@ -77,7 +77,7 @@ export default {
                 throw createError(
                     "Failed to load sender economy data",
                     ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה שלך. אנא נסה שוב מאוחר יותר.",
                     { userId: senderId, guildId }
                 );
             }
@@ -86,7 +86,7 @@ export default {
                 throw createError(
                     "Failed to load receiver economy data",
                     ErrorTypes.DATABASE,
-                    "Failed to load the receiver's economy data. Please try again later.",
+                    "נכשל בטעינת נתוני הכלכלה של המקבל. אנא נסה שוב מאוחר יותר.",
                     { userId: receiver.id, guildId }
                 );
             }
@@ -106,23 +106,23 @@ export default {
             const updatedReceiverData = await getEconomyData(client, guildId, receiver.id);
 
             const embed = MessageTemplates.SUCCESS.DATA_UPDATED(
-                "payment",
-                `You successfully paid **${receiver.username}** the amount of **$${amount.toLocaleString()}**!`
+                "תשלום",
+                `בהצלחה שילמת ל-**${receiver.username}** בסכום של **$${amount.toLocaleString()}**!`
             )
                 .addFields(
                     {
-                        name: "💳 Payment Amount",
+                        name: "💳 סכום התשלום",
                         value: `$${amount.toLocaleString()}`,
                         inline: true,
                     },
                     {
-                        name: "💵 Your New Balance",
+                        name: "💵 היתרה החדשה שלך",
                         value: `$${updatedSenderData.wallet.toLocaleString()}`,
                         inline: true,
                     },
                 )
                 .setFooter({
-                    text: `Paid to ${receiver.tag}`,
+                    text: `שולם ל-${receiver.tag}`,
                     iconURL: receiver.displayAvatarURL(),
                 });
 
@@ -138,10 +138,10 @@ export default {
 
             try {
                 const receiverEmbed = createEmbed({ 
-                    title: "💰 Incoming Payment!", 
-                    description: `${interaction.user.username} paid you **$${amount.toLocaleString()}**.` 
+                    title: "💰 תשלום נכנס!", 
+                    description: `${interaction.user.username} שילם לך **$${amount.toLocaleString()}**.` 
                 }).addFields({
-                    name: "Your New Cash",
+                    name: "המזומנים החדשים שלך",
                     value: `$${updatedReceiverData.wallet.toLocaleString()}`,
                     inline: true,
                 });
@@ -151,8 +151,3 @@ export default {
             }
     }, { command: 'pay' })
 };
-
-
-
-
-
